@@ -6,6 +6,7 @@
 #include "animation.h"
 #include "z_math.h"
 #include "collision_check.h"
+#include "animated_materials.h"
 
 #define ACTOR_NUMBER_MAX 200
 
@@ -251,6 +252,9 @@ typedef struct Actor {
 #if DEBUG_FEATURES
     /* 0x13C */ char dbgPad[0x10];
 #endif
+#if ENABLE_ANIMATED_MATERIALS
+/* 0x13D*/ AnimatedMatContext animMatCtx;
+#endif
 } Actor; // size = 0x14C
 
 typedef enum ActorFootIndex {
@@ -285,6 +289,9 @@ typedef struct DynaPolyActor {
     /* 0x15C */ u32 transformFlags;
     /* 0x160 */ u8 interactFlags;
     /* 0x162 */ s16 unk_162;
+#if ENABLE_ANIMATED_MATERIALS
+    AnimatedMatPolyContext animMatPolyCtx;
+#endif
 } DynaPolyActor; // size = 0x164
 
 typedef struct BodyBreak {

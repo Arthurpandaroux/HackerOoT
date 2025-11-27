@@ -5,4 +5,8 @@
 
 extern Gfx g{actorSpec}DL[];
 
+#include "gfx.h"
+
+extern Gfx g{actorSpec}DL[];
+
 #endif
