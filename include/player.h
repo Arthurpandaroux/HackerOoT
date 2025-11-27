@@ -1,11 +1,11 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include "src/code/art_manager.h"
 #include "actor.h"
 #include "alignment.h"
 #include "face_change.h"
 #include "config.h"
-
 struct Player;
 
 #define PLAYER_PARAMS(startMode, startBgCamIndex) (PARAMS_PACK_NOMASK(startMode, 8) | PARAMS_PACK_NOMASK(startBgCamIndex, 0))
@@ -919,7 +919,6 @@ typedef struct Player {
     /* 0x0846 */ u8 controlStickDataIndex; // cycles between 0 - 3. Used to index `controlStickSpinAngles` and `controlStickDirections`
     /* 0x0847 */ s8 controlStickSpinAngles[4]; // Stores a modified version of the control stick angle for the last 4 frames. Used for checking spins.
     /* 0x084B */ s8 controlStickDirections[4]; // Stores the control stick direction (relative to shape yaw) for the last 4 frames. See `PlayerStickDirection`.
-
     /* 0x084F */ union {
         s8 actionVar1;
         s8 startedAnim; // Player_Action_TimeTravelEnd: Started playing the animation that was previously frozen
@@ -996,6 +995,8 @@ typedef struct Player {
     /* 0x0A86 */ s8 unk_A86;
     /* 0x0A87 */ u8 unk_A87;
     /* 0x0A88 */ Vec3f unk_A88; // previous body part 0 position
+    ArtManager artManager;
+    ArtAction artAction;
 } Player; // size = 0xA94
 
 // z_player_lib.c

@@ -26,6 +26,7 @@
 #include "player.h"
 #include "save.h"
 #include "debug.h"
+#include "src/code/art_manager.h"
 
 #include "assets/textures/parameter_static/parameter_static.h"
 #include "assets/textures/do_action_static/do_action_static.h"
@@ -3678,6 +3679,8 @@ void Interface_Draw(PlayState* play) {
         Interface_InitVertices(play);
         func_8008A994(interfaceCtx);
         Health_DrawMeter(play);
+        ArtManager* mgr;
+        ArtManager_DrawUI(mgr, play);
 
         Gfx_SetupDL_39Overlay(play->state.gfxCtx);
 

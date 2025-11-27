@@ -51,6 +51,7 @@
 #include "save.h"
 #include "skin_matrix.h"
 #include "z_debug.h"
+#include "src/code/art_manager.h"
 
 #include "assets/objects/gameplay_keep/gameplay_keep.h"
 #include "assets/objects/object_link_child/object_link_child.h"
@@ -6360,6 +6361,14 @@ void Player_SetupRoll(Player* this, PlayState* play) {
                                    FRAMERATE_CONST(1.25f, 1.5f) * sWaterSpeedFactor);
 }
 
+
+void Player_StartRoll(Player* this, PlayState* play) {
+     Player_SetupAction(play, this, Player_Action_Roll, 0);
+    LinkAnimation_PlayOnceSetSpeed(play, &this->skelAnime,
+                                   GET_PLAYER_ANIM(PLAYER_ANIMGROUP_landing_roll, this->modelAnimType),
+                                   FRAMERATE_CONST(1.25f, 1.5f) * sWaterSpeedFactor);
+};
+
 s32 Player_TryRoll(Player* this, PlayState* play) {
     if ((this->controlStickDirections[this->controlStickDataIndex] == PLAYER_STICK_DIR_FORWARD) &&
         (sFloorType != FLOOR_TYPE_7)) {
@@ -10665,7 +10674,9 @@ static EffectBlureInit2 D_8085470C = {
 
 static Vec3s sSkeletonBaseTransl = { -57, 3377, 0 };
 
+
 void Player_InitCommon(Player* this, PlayState* play, FlexSkeletonHeader* skelHeader) {
+    ArtManager* mgr;
     this->ageProperties = &sAgeProperties[gSaveContext.save.linkAge];
     Actor_ProcessInitChain(&this->actor, sInitChain);
     this->meleeWeaponEffectIndex = TOTAL_EFFECT_COUNT;
@@ -10691,6 +10702,7 @@ void Player_InitCommon(Player* this, PlayState* play, FlexSkeletonHeader* skelHe
     Collider_SetQuad(play, &this->meleeWeaponQuads[1], &this->actor, &D_80854650);
     Collider_InitQuad(play, &this->shieldQuad);
     Collider_SetQuad(play, &this->shieldQuad, &this->actor, &D_808546A0);
+    ArtManager_Init(&this->artManager);
 }
 
 static void (*sStartModeFuncs[PLAYER_START_MODE_MAX])(PlayState* play, Player* this) = {
@@ -11814,6 +11826,7 @@ void Player_UpdateCommon(Player* this, PlayState* play, Input* input) {
         this->unk_890--;
     }
 
+    ArtManager_Update(&this->artManager, play, this, input);
     Player_UpdateInterface(play, this);
 
     Player_UpdateZTargeting(this, play);
@@ -12245,7 +12258,7 @@ void Player_Update(Actor* thisx, PlayState* play) {
             input.press.button &= ~(BTN_A | BTN_B | BTN_CUP);
         }
     }
-
+        
     Player_UpdateCommon(this, play, &input);
 
 #if DEBUG_FEATURES

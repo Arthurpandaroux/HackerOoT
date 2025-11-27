@@ -247,6 +247,7 @@ typedef struct Actor {
     /* 0x130 */ ActorFunc update; // Update Routine. Called by `Actor_UpdateAll`
     /* 0x134 */ ActorFunc draw; // Draw Routine. Called by `Actor_Draw`
     /* 0x138 */ struct ActorOverlay* overlayEntry; // Pointer to the overlay table entry for this actor
+                u32 aggroCounter[3];
 #if DEBUG_FEATURES
     /* 0x13C */ char dbgPad[0x10];
 #endif

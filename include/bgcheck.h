@@ -123,8 +123,24 @@ typedef enum FloorType {
     /*  9 */ FLOOR_TYPE_9,
     /* 10 */ FLOOR_TYPE_10,
     /* 11 */ FLOOR_TYPE_11,
-    /* 12 */ FLOOR_TYPE_12
+    /* 12 */ FLOOR_TYPE_12 
 } FloorType;
+
+    /*  0  FLOOR_TYPE_NONE, */
+    /*  1  FLOOR_TYPE_1, */
+    /*  2  FLOOR_TYPE_HURT_FLOOR, */
+    /*  3  FLOOR_TYPE_FIRE_HURT_FLOOR, */
+    /*  4  FLOOR_TYPE_SHALLOW_SAND, */
+    /*  5  FLOOR_TYPE_SLIPPERY_ICE, */
+    /*  6  FLOOR_TYPE_NO_FALL_DAMAGE, */
+    /*  7  FLOOR_TYPE_QUICKSAND_NO_HORSE, */
+    /*  8  FLOOR_TYPE_JABU_WALL, */
+    /*  9  FLOOR_TYPE_VOID_ON_TOUCH, */
+    /* 10  FLOOR_TYPE_10, */
+    /* 11 FLOOR_TYPE_LOOK_UP, */
+    /* 12  FLOOR_TYPE_QUICKSAND_HORSE_CAN_CROSS, */
+    /* 13  FLOOR_TYPE_MAX */
+
 
 typedef enum WallType {
     /*  0 */ WALL_TYPE_0,

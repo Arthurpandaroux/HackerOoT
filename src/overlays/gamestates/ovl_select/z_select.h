@@ -192,6 +192,7 @@ static MapSelectEntry sScenes[] = {
     { "Forest Stage", MapSelect_LoadGame, ENTR_GROTTOS_12 },
     { "Death Mountain Trail Cow Grotto", MapSelect_LoadGame, ENTR_GROTTOS_13 },
     { "Cutscene Map", MapSelect_LoadGame, ENTR_CUTSCENE_MAP_0 },
+    { "Nopon", MapSelect_LoadGame, ENTR_NOPON_0 },
 #if CAN_INCLUDE_TEST_SCENES
     { "Test Room", MapSelect_LoadGame, ENTR_BESITU_0 },
     { "SRD Map", MapSelect_LoadGame, ENTR_SASATEST_0 },
