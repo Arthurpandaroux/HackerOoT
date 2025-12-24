@@ -34,6 +34,7 @@
 #include "overlays/actors/ovl_En_Part/z_en_part.h"
 
 #include "assets/objects/gameplay_keep/gameplay_keep.h"
+#include "assets/objects/gameplay_hacker_keep/gameplay_hacker_keep.h"
 #include "assets/objects/gameplay_dangeon_keep/gameplay_dangeon_keep.h"
 #include "assets/objects/object_bdoor/object_bdoor.h"
 
@@ -2598,7 +2599,40 @@ void Actor_FaultPrint(Actor* actor, char* command) {
     Fault_Printf("ACTOR NAME %08x:%s", actor, name);
 }
 
+void Actor_DrawNotificationTextIcon(Actor* actor, PlayState* play, u8 enemyState) {
+    f32 yOffset = 0.0f;
+    Gfx* dLists[] = {gTopple_Symbol_DL_opaque_dl, gBreak_Symbol_DL_opaque_dl, gStun_Symbol_DL_opaque_dl};
+
+    OPEN_DISPS(play->state.gfxCtx, __FILE__, __LINE__);
+
+    POLY_OPA_DISP = Gfx_SetupDL(POLY_OPA_DISP, SETUPDL_44);
+
+
+    Matrix_Translate(actor->focus.pos.x, actor->focus.pos.y + (actor->lockOnArrowOffset * actor->scale.y) + 17.0f + yOffset,
+                     actor->focus.pos.z, MTXMODE_NEW);
+    Matrix_ReplaceRotation(&play->billboardMtxF);
+    Matrix_Scale((iREG(27) + 35) / 1000.0f, (iREG(28) + 60) / 1000.0f, (iREG(29) + 50) / 1000.0f, MTXMODE_APPLY);
+
+    // gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, 255, 0, 0, 255);
+    MATRIX_FINALIZE_AND_LOAD(POLY_OPA_DISP++, play->state.gfxCtx, __FILE__, __LINE__,
+                G_MTX_MODELVIEW | G_MTX_LOAD);
+    gSPDisplayList(POLY_OPA_DISP++, dLists[enemyState]);
+
+    CLOSE_DISPS(play->state.gfxCtx, __FILE__, __LINE__);
+}
+
+
 void Actor_Draw(PlayState* play, Actor* actor) {
+u8 EnemyState;
+
+if (actor->enemyState != ENEMY_BREAK) {
+    EnemyState = 1;
+}
+
+if (actor->enemyState != ENEMY_TOPPLE) {
+    EnemyState = 2;
+}
+
     FaultClient faultClient;
     Lights* lights;
 #if PLATFORM_IQUE
@@ -2669,10 +2703,80 @@ void Actor_Draw(PlayState* play, Actor* actor) {
     if (actor->shape.shadowDraw != NULL) {
         actor->shape.shadowDraw(actor, lights, play);
     }
-
+if (actor->enemyState == ENEMY_NULL) {
+     if (((R_PAUSE_BG_PRERENDER_STATE != PAUSE_BG_PRERENDER_PROCESS) &&
+        (R_PAUSE_BG_PRERENDER_STATE != PAUSE_BG_PRERENDER_READY))
+        && (play->csCtx.state == CS_STATE_IDLE)
+    ) {
+        Player* player = GET_PLAYER(play);
+        if ((actor->category == ACTORCAT_ENEMY)) {
+            if (!(player->actor.flags & ACTOR_FLAG_TALK)
+                && (!(player->stateFlags1 & PLAYER_STATE1_10) 
+                    || !(player->stateFlags1 & ACTOR_FLAG_GRASS_DESTROYED) 
+                    || !(player->stateFlags1 & PLAYER_STATE1_29))) {
+                Actor_DrawNotificationTextIcon(actor, play, EnemyState);
+            } else {
+            }
+        }
+    }
+};
     CLOSE_DISPS(play->state.gfxCtx, "../z_actor.c", 6119);
 
     Fault_RemoveClient(&faultClient);
+}
+
+Actor* Actor_GetHighestAggroTarget(Actor* enemy, struct PlayState* play) {
+    if (enemy == NULL || play == NULL) {
+        return NULL;
+    }
+    u32 bestVal = 0;
+    int bestIdx = -1;
+    for (int i = 0; i < 3; i++) {
+        if (play->partyMembers[i] == NULL) {
+            continue;
+        }
+        if (enemy->aggroCounter[i] > bestVal) {
+            bestVal = enemy->aggroCounter[i];
+            bestIdx = i;
+        }
+    }
+    if (bestIdx >= 0) {
+        return play->partyMembers[bestIdx];
+    }
+    return NULL;
+}
+
+void Actor_AddThreatNearby(struct PlayState* play, Actor* source, s32 amount, f32 radius) {
+    if (play == NULL || source == NULL || amount <= 0) {
+        return;
+    }
+
+    int partyIdx = -1;
+    for (int i = 0; i < 3; i++) {
+        if (play->partyMembers[i] == source) {
+            partyIdx = i;
+            break;
+        }
+    }
+    if (partyIdx < 0) {
+        return; // source isn't a registered party member
+    }
+
+    // Check enemies and bosses
+    const u8 enemyCats[] = { ACTORCAT_ENEMY, ACTORCAT_BOSS };
+    for (int ci = 0; ci < ARRAY_COUNT(enemyCats); ci++) {
+        Actor* a = play->actorCtx.actorLists[enemyCats[ci]].head;
+        while (a != NULL) {
+            if ((a->update != NULL) && (a != source)) {
+                f32 dist = Actor_WorldDistXYZToActor(source, a);
+                if (dist <= radius) {
+                    u64 sum = (u64)a->aggroCounter[partyIdx] + (u64)amount;
+                    a->aggroCounter[partyIdx] = sum;
+                }
+            }
+            a = a->next;
+        }
+    }
 }
 
 void Actor_UpdateFlaggedAudio(Actor* actor) {
@@ -2687,6 +2791,7 @@ void Actor_UpdateFlaggedAudio(Actor* actor) {
     } else {
         Sfx_PlaySfxAtPos(&actor->projectedPos, actor->sfx);
     }
+
 }
 
 #define LENS_MASK_WIDTH 64

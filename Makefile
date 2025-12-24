@@ -51,7 +51,7 @@ REGION ?= US
 DEBUG_FEATURES ?= 1
 # MIPS ABI, can be one of "32", "n32" or "eabi"
 # Note n32 and/or eabi may break some old emulators or emulator versions
-ABI := 32
+ABI := eabi
 
 # Version-specific settings
 REGIONAL_CHECKSUM := 0

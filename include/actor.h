@@ -192,6 +192,14 @@ typedef struct ActorShape {
 #define BGCHECKFLAG_CRUSHED (1 << 8) // Crushed between a floor and ceiling (triggers a void for player)
 #define BGCHECKFLAG_PLAYER_WALL_INTERACT (1 << 9) // Only set/used by player, related to interacting with walls
 
+typedef enum EnemyState {
+    ENEMY_NULL,
+    ENEMY_BREAK,
+    ENEMY_TOPPLE,
+    ENEMY_STUN,
+    ENEMY_AGRESSIVE
+} EnemyState;
+
 typedef struct Actor {
     /* 0x000 */ s16 id; // Actor ID
     /* 0x002 */ u8 category; // Actor category. Refer to the corresponding enum for values
@@ -249,6 +257,12 @@ typedef struct Actor {
     /* 0x134 */ ActorFunc draw; // Draw Routine. Called by `Actor_Draw`
     /* 0x138 */ struct ActorOverlay* overlayEntry; // Pointer to the overlay table entry for this actor
                 u32 aggroCounter[3];
+                EnemyState enemyState;
+                u16 physicaldamagemultiplier;
+                u16 magicdamagemultiplier;
+                u16 physicaldefensemultiplier;
+                u16 magicdefensemultiplier;
+
 #if DEBUG_FEATURES
     /* 0x13C */ char dbgPad[0x10];
 #endif
@@ -620,6 +634,8 @@ typedef struct NpcInteractInfo {
 extern Gfx D_80116280[];
 
 void ActorShape_Init(ActorShape* shape, f32 yOffset, ActorShadowFunc shadowDraw, f32 shadowScale);
+Actor* Actor_GetHighestAggroTarget(Actor* enemy, struct PlayState* play);
+void Actor_AddThreatNearby(struct PlayState* play, Actor* source, s32 amount, f32 radius);
 void ActorShadow_DrawCircle(Actor* actor, struct Lights* lights, struct PlayState* play);
 void ActorShadow_DrawWhiteCircle(Actor* actor, struct Lights* lights, struct PlayState* play);
 void ActorShadow_DrawHorse(Actor* actor, struct Lights* lights, struct PlayState* play);

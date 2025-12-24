@@ -1152,6 +1152,24 @@ beginseg
 endseg
 
 beginseg
+    name "ovl_En_Tirkin"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Tirkin/z_en_tirkin.o"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Tirkin/ovl_En_Tirkin_reloc.o"
+endseg
+
+beginseg
+    name "ovl_En_Arma"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Arma/z_en_arma.o"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Arma/ovl_En_Arma_reloc.o"
+endseg
+
+beginseg
+    name "ovl_En_Caterpillar"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Caterpillar/z_en_caterpillar.o"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Caterpillar/ovl_En_Caterpillar_reloc.o"
+endseg
+
+beginseg
     name "gameplay_keep"
     compress
     romalign 0x1000
@@ -4233,7 +4251,28 @@ beginseg
     number 6
 endseg
 
-#if !ENABLE_MM_TITLE_CARDS
+
+beginseg
+    name "object_en_tirkin"
+    romalign 0x1000
+    include "$(BUILD_DIR)/assets/objects/object_en_tirkin/object_en_tirkin.o"
+    number 6
+endseg
+
+beginseg
+    name "object_en_arma"
+    romalign 0x1000
+    include "$(BUILD_DIR)/assets/objects/object_en_arma/object_en_arma.o"
+    number 6
+endseg
+
+beginseg
+    name "object_en_caterpillar"
+    romalign 0x1000
+    include "$(BUILD_DIR)/assets/objects/object_en_caterpillar/object_en_caterpillar.o"
+    number 6
+endseg
+
 beginseg
     name "g_pn_01"
     compress
@@ -4632,7 +4671,7 @@ beginseg
     romalign 0x1000
     include "$(BUILD_DIR)/assets/textures/place_title_cards/g_pn_57.o"
 endseg
-#endif
+
 
 beginseg
     name "z_select_static"

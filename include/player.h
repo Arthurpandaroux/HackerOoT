@@ -111,6 +111,16 @@ typedef enum PlayerIdleType {
     /*  0x1 */ PLAYER_IDLE_FIDGET
 } PlayerIdleType;
 
+typedef enum {
+    MW_ATK_NONE = 0,
+    MW_ATK_SLASH,
+    MW_ATK_SPIN,
+    MW_ATK_JUMP,
+    MW_ATK_TWOHAND,
+    MW_ATK_MAX,
+} MeleeAttackType;
+
+
 typedef enum PlayerItemAction {
     /* 0x00 */ PLAYER_IA_NONE,
     /* 0x01 */ PLAYER_IA_SWORD_CS, // Hold sword without shield in hand. The sword is not usable.

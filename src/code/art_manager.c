@@ -11,6 +11,7 @@
 #include "widescreen.h"
 #include "regs.h"
 #include "ultra64/gbi.f3dex3.h"
+#include "message.h"
 
 
 #include "assets/textures/parameter_static/parameter_static.h"
@@ -67,8 +68,6 @@ void ArtManager_Init(ArtManager* mgr) {
     }
 };
     
-
-   
 
 void ArtManager_DrawUI(ArtManager* mgr, PlayState* play) {
      u32 curColorSet;

@@ -146,6 +146,7 @@ typedef enum TextState {
 #define TEXTBOX_ENDTYPE_EVENT       0x50
 #define TEXTBOX_ENDTYPE_FADING      0x60
 
+
 typedef struct MessageContext {
     /* 0x0000 */ View view;
     /* 0x0128 */ Font font;
@@ -205,6 +206,15 @@ typedef struct MessageContext {
                  struct TitleCardInfo* titleCardInfo;
 #endif
 } MessageContext; // size = 0xE418
+
+typedef struct ArtInfo {
+        u16 textId;
+    Color_RGBA8 rgba; // MM default: R: 140, G: 40, B: 160, A: 255
+    Vec2s textPos; // HackerOoT default: X: 25, Y: 67
+    u8 gradientWidth; // HackerOoT default: 60
+    u8 gradientHeight; // HackerOoT default: 28
+} ArtInfo;
+
 
 void Message_UpdateOcarinaMemoryGame(struct PlayState* play);
 u8 Message_ShouldAdvance(struct PlayState* play);

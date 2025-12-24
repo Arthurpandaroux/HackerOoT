@@ -95,6 +95,7 @@ typedef struct ColliderElementDamageInfoAT {
     /* 0x00 */ u32 dmgFlags; // Damage types dealt by this collider element as AT.
     /* 0x04 */ u8 hitSpecialEffect; // The hit special effect applied to any actor attacked by this AT collider.
     /* 0x05 */ u8 damage; // Damage
+               u8 damageMagic;
 } ColliderElementDamageInfoAT; // size = 0x08
 
 typedef enum HitBacklash {
@@ -107,12 +108,14 @@ typedef struct ColliderElementDamageInfoAC {
     /* 0x04 */ u8 hitBacklash;  // The hit backlash type applied to any attacker hurting this AC collider.
     /* 0x05 */ u8 defense; // Damage Resistance
     /* 0x06 */ Vec3s hitPos; // Point of contact
+               u8 defenseMagic;
 } ColliderElementDamageInfoAC; // size = 0x0C
 
 typedef struct ColliderElementDamageInfoACInit {
     /* 0x00 */ u32 dmgFlags; // Damage types that may affect this collider element as AC.
     /* 0x04 */ u8 hitBacklash; // The hit backlash type applied to any attacker hurting this AC collider.
     /* 0x05 */ u8 defense; // Damage Resistance
+               u8 defenseMagic;
 } ColliderElementDamageInfoACInit; // size = 0x08
 
 typedef enum ElementMaterial {
@@ -345,7 +348,10 @@ typedef struct CollisionCheckContext {
 #define AT_TYPE_ENEMY (1 << 4) // Has enemy-aligned damage
 #define AT_TYPE_OTHER (1 << 5) // Has non-aligned damage
 #define AT_SELF (1 << 6) // Can have AT collisions with colliders attached to the same actor
+#define AT_MAGIC (1 << 7)
+#define AT_PHYSICAL (1 << 8)
 #define AT_TYPE_ALL (AT_TYPE_PLAYER | AT_TYPE_ENEMY | AT_TYPE_OTHER) // Has all three damage alignments
+
 
 #define AC_NONE 0 // No flags set. Cannot have AC collisions when set as AC
 #define AC_ON (1 << 0) // Can have AC collisions when set as AC
@@ -457,14 +463,14 @@ typedef struct DamageTable {
 } DamageTable;
 
 typedef struct CollisionCheckInfoInit {
-    /* 0x00 */ u8 health;
+    /* 0x00 */ u32 health;
     /* 0x02 */ s16 cylRadius;
     /* 0x04 */ s16 cylHeight;
     /* 0x06 */ u8 mass;
 } CollisionCheckInfoInit;
 
 typedef struct CollisionCheckInfoInit2 {
-    /* 0x00 */ u8 health;
+    /* 0x00 */ u32 health;
     /* 0x02 */ s16 cylRadius;
     /* 0x04 */ s16 cylHeight;
     /* 0x06 */ s16 cylYShift;
@@ -478,11 +484,12 @@ typedef struct CollisionCheckInfo {
     /* 0x12 */ s16 cylHeight; // Used for various purposes
     /* 0x14 */ s16 cylYShift; // Unused. Purpose inferred from Cylinder16 and CollisionCheck_CylSideVsLineSeg
     /* 0x16 */ u8 mass; // Used to compute displacement for OC collisions
-    /* 0x17 */ u8 health; // Note: some actors may use their own health variable instead of this one
+    /* 0x17 */ u32 health; // Note: some actors may use their own health variable instead of this one
     /* 0x18 */ u8 damage; // Amount to decrement health by
     /* 0x19 */ u8 damageReaction; // Stores what reaction should occur after being hit
     /* 0x1A */ u8 atHitBacklash; // Stores the hit backlash type received from attacking an AC collider
     /* 0x1B */ u8 acHitSpecialEffect; // Stores the hit special effect received from being attacked by an AT collider
+               u8 damageMagic;
 } CollisionCheckInfo; // size = 0x1C
 
 DamageTable* DamageTable_Get(s32 index);

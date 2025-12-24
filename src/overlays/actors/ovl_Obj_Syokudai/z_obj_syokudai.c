@@ -43,9 +43,9 @@ static ColliderCylinderInit sCylInitStand = {
     {
         COL_MATERIAL_METAL,
         AT_NONE,
-        AC_ON | AC_HARD | AC_TYPE_PLAYER,
-        OC1_ON | OC1_TYPE_ALL,
-        OC2_TYPE_2,
+        AC_NONE,
+        OC1_NONE,
+        OC2_NONE,
         COLSHAPE_CYLINDER,
     },
     {

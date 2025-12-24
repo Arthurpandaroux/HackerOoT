@@ -205,7 +205,7 @@ void EnTite_Init(Actor* thisx, PlayState* play) {
     this->bodyBreak.val = BODYBREAK_STATUS_FINISHED;
     thisx->focus.pos = thisx->world.pos;
     thisx->focus.pos.y += 20.0f;
-    thisx->colChkInfo.health = 2;
+    thisx->colChkInfo.health = 150;
     thisx->colChkInfo.mass = MASS_HEAVY;
     Collider_InitJntSph(play, &this->collider);
     Collider_SetJntSph(play, &this->collider, thisx, &sJntSphInit, this->colliderElements);
@@ -216,6 +216,7 @@ void EnTite_Init(Actor* thisx, PlayState* play) {
         thisx->naviEnemyId += NAVI_ENEMY_BLUE_TEKTITE - NAVI_ENEMY_RED_TEKTITE;
     }
     EnTite_SetupIdle(this);
+    thisx->enemyState == ENEMY_TOPPLE;
 }
 
 void EnTite_Destroy(Actor* thisx, PlayState* play) {

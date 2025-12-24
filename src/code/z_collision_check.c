@@ -159,8 +159,7 @@ void Collider_ResetOCBase(PlayState* play, Collider* col) {
 }
 
 s32 Collider_InitElementDamageInfoAT(PlayState* play, ColliderElementDamageInfoAT* atDmgInfo) {
-    static ColliderElementDamageInfoAT init = { 0x00000000, 0, 0 };
-
+    static ColliderElementDamageInfoAT init = { 0x00000000, 0, 0, 0 }; // dmgFlags, hitSpecialEffect, damage, damageMagic
     *atDmgInfo = init;
     return true;
 }
@@ -181,8 +180,7 @@ void Collider_ResetATElement_Unk(PlayState* play, ColliderElement* elem) {
 }
 
 s32 Collider_InitElementDamageInfoAC(PlayState* play, ColliderElementDamageInfoAC* acDmgInfo) {
-    static ColliderElementDamageInfoAC init = { 0xFFCFFFFF, 0, 0, { 0, 0, 0 } };
-
+    static ColliderElementDamageInfoAC init = { 0xFFCFFFFF, 0, 0, { 0, 0, 0 }, 0 }; // dmgFlags, hitBacklash, defense, hitPos, defenseMagic
     *acDmgInfo = init;
     return true;
 }
@@ -3087,24 +3085,22 @@ void CollisionCheck_ApplyDamage(PlayState* play, CollisionCheckContext* colChkCt
 
     ASSERT(elem->acHitElem != NULL, "pclobj_elem->ac_hit_elem != NULL", "../z_collision_check.c", 6493);
     tbl = col->actor->colChkInfo.damageTable;
-    if (tbl == NULL) {
-        damage = (f32)elem->acHitElem->atDmgInfo.damage - elem->acDmgInfo.defense;
-        if (damage < 0) {
-            damage = 0;
-        }
+
+   /* Compute damage from the AT element. Avoid dereferencing uninitialized pointers.
+       Use the AT element's damage / damageMagic and subtract AC element defense values.
+       (Original code incorrectly referenced an uninitialized Actor pointer.) */
+    if (elem->acHit->atFlags & AT_PHYSICAL) {
+        damage = (f32)(elem->acHitElem->atDmgInfo.damage) - (f32)(elem->acDmgInfo.defense);
+    } else if (elem->acHit->atFlags & AT_MAGIC) {
+        damage = (f32)(elem->acHitElem->atDmgInfo.damageMagic) - (f32)(elem->acDmgInfo.defenseMagic);
     } else {
-        s32 i;
-        u32 flags = elem->acHitElem->atDmgInfo.dmgFlags;
-
-        for (i = 0; i < 32; i++, flags >>= 1) {
-            if (flags == 1) {
-                break;
-            }
-        }
-
-        damage = tbl->table[i] & 0xF;
-        col->actor->colChkInfo.damageReaction = tbl->table[i] >> 4 & 0xF;
+        damage = 0.0f;
     }
+
+    if (damage < 0.0f) {
+        damage = 0.0f;
+    }
+ // ...existing code...
     if (!(col->acFlags & AC_HARD)) {
         col->actor->colChkInfo.damage += damage;
     }
@@ -3715,16 +3711,16 @@ s32 CollisionCheck_CylSideVsLineSeg(f32 radius, f32 height, f32 offset, Vec3f* a
  * not sword-type. Used by bosses to require that a sword attack deal the killing blow.
  */
 u8 CollisionCheck_GetSwordDamage(s32 dmgFlags) {
-    u8 damage = 0;
+    u32 damage = 0;
 
     if (dmgFlags & (DMG_SPIN_KOKIRI | DMG_SLASH_KOKIRI)) {
-        damage = 1;
+        damage = 20;
     } else if (dmgFlags & (DMG_JUMP_KOKIRI | DMG_SPIN_MASTER | DMG_SLASH_MASTER | DMG_HAMMER_SWING | DMG_DEKU_STICK)) {
-        damage = 2;
+        damage = 20;
     } else if (dmgFlags & (DMG_HAMMER_JUMP | DMG_JUMP_MASTER | DMG_SPIN_GIANT | DMG_SLASH_GIANT)) {
-        damage = 4;
+        damage = 20;
     } else if (dmgFlags & DMG_JUMP_GIANT) {
-        damage = 8;
+        damage = 20;
     }
 
 #if DEBUG_FEATURES

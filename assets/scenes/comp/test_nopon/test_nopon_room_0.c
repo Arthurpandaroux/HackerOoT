@@ -232,8 +232,8 @@ Gfx test_nopon_room_0_dl_Floor_mesh_layer_Opaque_tri_0[] = {
 
 Vtx test_nopon_room_0_dl_Floor_mesh_layer_Opaque_vtx_1[20] = {
 	{{ {-468, -77, 468}, 0, {-16, 2032}, {66, 86, 191, 255} }},
-	{{ {-468, -77, -468}, 0, {3984, 2032}, {66, 87, 65, 255} }},
-	{{ {-461, 149, -469}, 0, {3987, -16}, {89, 254, 91, 255} }},
+	{{ {-468, -77, -468}, 0, {6660, 2032}, {66, 87, 65, 255} }},
+	{{ {-461, 149, -469}, 0, {6663, -16}, {89, 254, 91, 255} }},
 	{{ {-461, 149, 466}, 0, {-13, -16}, {89, 253, 166, 255} }},
 	{{ {-468, -77, -468}, 0, {-16, 2032}, {66, 87, 65, 255} }},
 	{{ {468, -77, -468}, 0, {5667, 2032}, {191, 87, 65, 255} }},
@@ -277,11 +277,11 @@ Gfx test_nopon_room_0_dl_Floor_mesh_layer_Opaque_tri_2[] = {
 };
 
 Gfx mat_test_nopon_room_0_dl_floor_mat_layerOpaque[] = {
-	gsSPLoadGeometryMode(G_CULL_BACK | G_LIGHTING | G_SHADING_SMOOTH | G_ZBUFFER | G_SHADE | G_FOG),
+	gsSPLoadGeometryMode(G_SHADING_SMOOTH | G_FOG | G_SHADE | G_LIGHTING | G_ZBUFFER | G_CULL_BACK),
 	gsDPPipeSync(),
 	gsDPSetCombineLERP(TEXEL1, TEXEL0, ENV_ALPHA, TEXEL0, 0, 0, 0, 1, COMBINED, 0, SHADE, 0, 0, 0, 0, COMBINED),
-	gsSPSetOtherMode(G_SETOTHERMODE_H, 4, 20, G_TP_PERSP | G_PM_NPRIMITIVE | G_TL_TILE | G_TF_BILERP | G_CYC_2CYCLE | G_CD_MAGICSQ | G_TC_FILT | G_TT_RGBA16 | G_CK_NONE | G_AD_NOISE | G_TD_CLAMP),
-	gsSPSetOtherMode(G_SETOTHERMODE_L, 0, 32, G_RM_AA_ZB_OPA_SURF2 | G_AC_NONE | G_RM_FOG_SHADE_A | G_ZS_PIXEL),
+	gsSPSetOtherMode(G_SETOTHERMODE_H, 4, 20, G_TF_BILERP | G_TT_RGBA16 | G_TD_CLAMP | G_CYC_2CYCLE | G_TP_PERSP | G_TC_FILT | G_PM_NPRIMITIVE | G_CK_NONE | G_CD_MAGICSQ | G_TL_TILE | G_AD_NOISE),
+	gsSPSetOtherMode(G_SETOTHERMODE_L, 0, 32, G_RM_AA_ZB_OPA_SURF2 | G_ZS_PIXEL | G_RM_FOG_SHADE_A | G_AC_NONE),
 	gsSPTexture(65535, 65535, 0, 0, 1),
 	gsDPSetEnvColor(255, 255, 255, 128),
 	gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, test_nopon_room_0_dl_grass_1_x_grass_3_pal_rgba16),
@@ -300,18 +300,12 @@ Gfx mat_test_nopon_room_0_dl_floor_mat_layerOpaque[] = {
 	gsSPEndDisplayList(),
 };
 
-Gfx mat_revert_test_nopon_room_0_dl_floor_mat_layerOpaque[] = {
-	gsDPPipeSync(),
-	gsSPSetOtherMode(G_SETOTHERMODE_L, 0, 32, G_RM_AA_ZB_OPA_SURF2 | G_AC_NONE | G_RM_AA_ZB_OPA_SURF | G_ZS_PIXEL),
-	gsSPEndDisplayList(),
-};
-
 Gfx mat_test_nopon_room_0_dl_f3dlite_material_layerOpaque[] = {
-	gsSPLoadGeometryMode(G_CULL_BACK | G_LIGHTING | G_SHADING_SMOOTH | G_ZBUFFER | G_SHADE | G_FOG),
+	gsSPLoadGeometryMode(G_SHADING_SMOOTH | G_FOG | G_SHADE | G_LIGHTING | G_ZBUFFER | G_CULL_BACK),
 	gsDPPipeSync(),
 	gsDPSetCombineLERP(TEXEL0, 0, SHADE, 0, 0, 0, 0, 1, COMBINED, 0, PRIMITIVE, 0, 0, 0, 0, COMBINED),
-	gsSPSetOtherMode(G_SETOTHERMODE_H, 4, 20, G_TP_PERSP | G_PM_NPRIMITIVE | G_TL_TILE | G_TF_BILERP | G_CYC_2CYCLE | G_CD_MAGICSQ | G_TC_FILT | G_TT_RGBA16 | G_CK_NONE | G_AD_NOISE | G_TD_CLAMP),
-	gsSPSetOtherMode(G_SETOTHERMODE_L, 0, 32, G_RM_AA_ZB_OPA_SURF2 | G_AC_NONE | G_RM_FOG_SHADE_A | G_ZS_PIXEL),
+	gsSPSetOtherMode(G_SETOTHERMODE_H, 4, 20, G_TF_BILERP | G_TT_RGBA16 | G_TD_CLAMP | G_CYC_2CYCLE | G_TP_PERSP | G_TC_FILT | G_PM_NPRIMITIVE | G_CK_NONE | G_CD_MAGICSQ | G_TL_TILE | G_AD_NOISE),
+	gsSPSetOtherMode(G_SETOTHERMODE_L, 0, 32, G_RM_AA_ZB_OPA_SURF2 | G_ZS_PIXEL | G_RM_FOG_SHADE_A | G_AC_NONE),
 	gsSPTexture(65535, 65535, 0, 0, 1),
 	gsDPSetPrimColor(0, 0, 255, 255, 255, 255),
 	gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, test_nopon_room_0_dl_wall_pal_rgba16),
@@ -325,18 +319,12 @@ Gfx mat_test_nopon_room_0_dl_f3dlite_material_layerOpaque[] = {
 	gsSPEndDisplayList(),
 };
 
-Gfx mat_revert_test_nopon_room_0_dl_f3dlite_material_layerOpaque[] = {
-	gsDPPipeSync(),
-	gsSPSetOtherMode(G_SETOTHERMODE_L, 0, 32, G_RM_AA_ZB_OPA_SURF2 | G_AC_NONE | G_RM_AA_ZB_OPA_SURF | G_ZS_PIXEL),
-	gsSPEndDisplayList(),
-};
-
 Gfx mat_test_nopon_room_0_dl_f3dlite_material_001_layerOpaque[] = {
-	gsSPLoadGeometryMode(G_LIGHTING | G_SHADING_SMOOTH | G_ZBUFFER | G_SHADE | G_FOG),
+	gsSPLoadGeometryMode(G_SHADING_SMOOTH | G_FOG | G_SHADE | G_LIGHTING | G_ZBUFFER),
 	gsDPPipeSync(),
 	gsDPSetCombineLERP(TEXEL0, 0, SHADE, 0, 0, 0, 0, TEXEL0, COMBINED, 0, PRIMITIVE, 0, 0, 0, 0, COMBINED),
-	gsSPSetOtherMode(G_SETOTHERMODE_H, 4, 20, G_TP_PERSP | G_PM_NPRIMITIVE | G_TL_TILE | G_TF_BILERP | G_CYC_2CYCLE | G_CD_MAGICSQ | G_TC_FILT | G_TT_RGBA16 | G_CK_NONE | G_AD_NOISE | G_TD_CLAMP),
-	gsSPSetOtherMode(G_SETOTHERMODE_L, 0, 32, G_AC_NONE | G_RM_FOG_SHADE_A | G_RM_AA_ZB_TEX_EDGE2 | G_ZS_PIXEL),
+	gsSPSetOtherMode(G_SETOTHERMODE_H, 4, 20, G_TF_BILERP | G_TT_RGBA16 | G_TD_CLAMP | G_CYC_2CYCLE | G_TP_PERSP | G_TC_FILT | G_PM_NPRIMITIVE | G_CK_NONE | G_CD_MAGICSQ | G_TL_TILE | G_AD_NOISE),
+	gsSPSetOtherMode(G_SETOTHERMODE_L, 0, 32, G_RM_AA_ZB_TEX_EDGE2 | G_ZS_PIXEL | G_RM_FOG_SHADE_A | G_AC_NONE),
 	gsSPTexture(65535, 65535, 0, 0, 1),
 	gsDPSetPrimColor(0, 0, 255, 255, 255, 255),
 	gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, test_nopon_room_0_dl_sword_art_pal_rgba16),
@@ -350,12 +338,6 @@ Gfx mat_test_nopon_room_0_dl_f3dlite_material_001_layerOpaque[] = {
 	gsSPEndDisplayList(),
 };
 
-Gfx mat_revert_test_nopon_room_0_dl_f3dlite_material_001_layerOpaque[] = {
-	gsDPPipeSync(),
-	gsSPSetOtherMode(G_SETOTHERMODE_L, 0, 32, G_RM_AA_ZB_OPA_SURF2 | G_AC_NONE | G_RM_AA_ZB_OPA_SURF | G_ZS_PIXEL),
-	gsSPEndDisplayList(),
-};
-
 Gfx test_nopon_room_0_dl_Floor_mesh_layer_Opaque[] = {
 	gsSPClearGeometryMode(G_LIGHTING),
 	gsSPVertex(test_nopon_room_0_dl_Floor_mesh_layer_Opaque_vtx_cull + 0, 8, 0),
@@ -363,13 +345,10 @@ Gfx test_nopon_room_0_dl_Floor_mesh_layer_Opaque[] = {
 	gsSPCullDisplayList(0, 7),
 	gsSPDisplayList(mat_test_nopon_room_0_dl_floor_mat_layerOpaque),
 	gsSPDisplayList(test_nopon_room_0_dl_Floor_mesh_layer_Opaque_tri_0),
-	gsSPDisplayList(mat_revert_test_nopon_room_0_dl_floor_mat_layerOpaque),
 	gsSPDisplayList(mat_test_nopon_room_0_dl_f3dlite_material_layerOpaque),
 	gsSPDisplayList(test_nopon_room_0_dl_Floor_mesh_layer_Opaque_tri_1),
-	gsSPDisplayList(mat_revert_test_nopon_room_0_dl_f3dlite_material_layerOpaque),
 	gsSPDisplayList(mat_test_nopon_room_0_dl_f3dlite_material_001_layerOpaque),
 	gsSPDisplayList(test_nopon_room_0_dl_Floor_mesh_layer_Opaque_tri_2),
-	gsSPDisplayList(mat_revert_test_nopon_room_0_dl_f3dlite_material_001_layerOpaque),
 	gsSPEndDisplayList(),
 };
 

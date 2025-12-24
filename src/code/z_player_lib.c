@@ -389,7 +389,7 @@ Gfx* gPlayerLeftHandBgsDLs[] = {
 };
 
 Gfx* gPlayerLeftHandOpenDLs[] = {
-    gLinkAdultLeftHandNearDL,
+    gLinkAdultLeftHandNearDL_opaque_dl,
     gLinkChildLeftHandNearDL,
     gLinkAdultLeftHandFarDL,
     gLinkChildLeftHandFarDL,
@@ -418,7 +418,7 @@ Gfx* sPlayerLeftHandSwordDLs[] = {
 };
 
 Gfx* sPlayerRightHandOpenDLs[] = {
-    gLinkAdultRightHandNearDL,
+    gLinkAdultRightHandNearDL_opaque_dl,
     gLinkChildRightHandNearDL,
     gLinkAdultRightHandFarDL,
     gLinkChildRightHandFarDL,
@@ -1405,9 +1405,7 @@ s32 Player_OverrideLimbDrawGameplayDefault(PlayState* play, s32 limbIndex, Gfx**
             }
 
             *dList = *(dLists + sDListsLodOffset);
-        } else if (limbIndex == PLAYER_LIMB_WAIST) {
-            *dList = *(this->waistDLists + sDListsLodOffset);
-        }
+        } 
     }
 
     return false;

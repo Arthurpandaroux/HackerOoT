@@ -4507,7 +4507,12 @@ s32 func_80837818(Player* this) {
 }
 
 void func_80837918(Player* this, s32 quadIndex, u32 dmgFlags) {
-    this->meleeWeaponQuads[quadIndex].elem.atDmgInfo.dmgFlags = dmgFlags;
+    if (this->meleeWeaponAnimation == PLAYER_MWA_JUMPSLASH_FINISH) {
+    this->meleeWeaponQuads[quadIndex].elem.atDmgInfo.damage = 20;
+    } else {
+        this->meleeWeaponQuads[quadIndex].elem.atDmgInfo.damage = 1;
+    }
+    
 
     if (dmgFlags == DMG_DEKU_STICK) {
         this->meleeWeaponQuads[quadIndex].elem.atElemFlags = ATELEM_ON | ATELEM_NEAREST | ATELEM_SFX_WOOD;
@@ -4645,6 +4650,7 @@ void func_80837C0C(PlayState* play, Player* this, s32 hitResponseType, f32 speed
 
     Player_PlaySfx(this, NA_SE_PL_DAMAGE);
 
+    osSyncPrintf("[PLAYER] InvTimer=%d colDamage=%d actor=%d\n", this->invincibilityTimer, this->actor.colChkInfo.damage, this->actor.id);
     if (!func_80837B18(play, this, 0 - this->actor.colChkInfo.damage)) {
         this->stateFlags2 &= ~PLAYER_STATE2_7;
         if (!(this->actor.bgCheckFlags & BGCHECKFLAG_GROUND) && !(this->stateFlags1 & PLAYER_STATE1_27)) {
@@ -10513,7 +10519,7 @@ static ColliderCylinderInit D_80854624 = {
 static ColliderQuadInit D_80854650 = {
     {
         COL_MATERIAL_NONE,
-        AT_ON | AT_TYPE_PLAYER,
+        AT_ON | AT_TYPE_PLAYER | AT_PHYSICAL,
         AC_NONE,
         OC1_NONE,
         OC2_TYPE_PLAYER,
@@ -10892,6 +10898,14 @@ void Player_Init(Actor* thisx, PlayState* play2) {
 
     Map_SavePlayerInitialInfo(play);
     MREG(64) = 0;
+
+    for (int i = 0; i < ARRAY_COUNT(play->partyMembers); i++) {
+        if (play->partyMembers[i] == NULL) {
+            play->partyMembers[i] = &this->actor;
+            play->partyMemberCount++;
+            break;
+        }
+    }
 }
 
 void Player_ApproachZeroBinang(s16* pValue) {

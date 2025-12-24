@@ -1,0 +1,15 @@
+#ifndef GLINKADULTRIGHTHANDNEARDL_MESH_H
+#define GLINKADULTRIGHTHANDNEARDL_MESH_H
+
+#include "ultra64.h"
+#include "object_link_boy.h"
+
+extern u64 gLinkAdultRightHandNearDL_mesh_alvis_face_ci4[];
+extern u64 gLinkAdultRightHandNearDL_mesh_alvis_face_pal_rgba16[];
+extern Vtx gLinkAdultRightHandNearDL_mesh_gLinkAdultRightHandNearDL_mesh_mesh_layer_Opaque_vtx_cull[8];
+extern Vtx gLinkAdultRightHandNearDL_mesh_gLinkAdultRightHandNearDL_mesh_mesh_layer_Opaque_vtx_0[82];
+extern Gfx gLinkAdultRightHandNearDL_mesh_gLinkAdultRightHandNearDL_mesh_mesh_layer_Opaque_tri_0[];
+extern Gfx mat_gLinkAdultRightHandNearDL_mesh_f3dlite_material_471_layerOpaque[];
+extern Gfx gLinkAdultRightHandNearDL_mesh_opaque_dl[];
+
+#endif
