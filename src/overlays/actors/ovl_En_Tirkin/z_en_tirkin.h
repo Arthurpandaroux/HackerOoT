@@ -13,8 +13,11 @@ typedef struct En_Tirkin {
     Actor actor;
     En_TirkinActionFunc actionFunc;
     /* 0x0170 */ SkelAnime skelanime;
+    Vec3s jointTable[TIRKIN_SKEL_NUM_LIMBS];
+    Vec3s morphTable[TIRKIN_SKEL_NUM_LIMBS];
     short damagedTimer;
     short CooldownTimer;
+    ColliderCylinder collider;
 } En_Tirkin;
 
 #endif

@@ -1,0 +1,1 @@
+extern AnimationHeader Caterpillar_moveCaterpillar_idleAnim;

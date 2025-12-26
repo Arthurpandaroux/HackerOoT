@@ -1,0 +1,1 @@
+extern AnimationHeader Caterpillar_rollCaterpillar_attack_001Anim;
