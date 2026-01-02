@@ -288,6 +288,11 @@ typedef struct Save {
     u8 useWidescreen;
 } Save;
 
+typedef struct {
+    s32 xp;
+    s16 level;
+} PlayerLevel;
+
 typedef struct SaveContext {
     /* 0x0000 */ Save save; // "memory"
     /* 0x1354 */ s32 fileNum; // "file_no"
@@ -351,6 +356,7 @@ typedef struct SaveContext {
     /* 0x1420 */ s16 worldMapArea;
     /* 0x1422 */ s16 sunsSongState; // controls the effects of suns song
     /* 0x1424 */ s16 healthAccumulator;
+    PlayerLevel playerLevel;
 } SaveContext; // size = 0x1428
 
 typedef enum ButtonStatus {

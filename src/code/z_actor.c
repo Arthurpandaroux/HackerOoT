@@ -29,6 +29,7 @@
 #include "skin_matrix.h"
 #include "config.h"
 #include "widescreen.h"
+#include "zelda_arena.h"
 
 #include "overlays/actors/ovl_Arms_Hook/z_arms_hook.h"
 #include "overlays/actors/ovl_En_Part/z_en_part.h"
@@ -2412,6 +2413,111 @@ ActorFreezeMasks sCategoryFreezeMasks[ACTORCAT_MAX] = {
     { PLAYER_STATE1_TALKING | PLAYER_STATE1_DEAD | PLAYER_STATE1_28, 0, PLAYER_STATE3_CS_HALT },
 };
 
+
+StatusEffectNode* StatusEffect_AddToActor(Actor* actor, StatusEffectId id, s32 duration, u8 intensity) {
+    if (!actor || id == SE_NONE || duration <= 0) return NULL;
+    StatusEffectNode* n = SYSTEM_ARENA_MALLOC(sizeof(*n));
+    if (!n) return NULL;
+    n->id = id;
+    n->timer = duration;
+    n->intensity = intensity;
+    n->next = actor->statusEffectList;
+    actor->statusEffectList = n;
+    return n;
+}
+
+int StatusEffect_RemoveFromActor(Actor* actor, StatusEffectId id) {
+    if (!actor) return 0;
+    StatusEffectNode** cur = &actor->statusEffectList;
+    int removed = 0;
+    while (*cur) {
+        StatusEffectNode* s = *cur;
+        if (s->id == id) {
+            *cur = s->next;
+            ZELDA_ARENA_FREE(s, "../z_actor.c", 1);
+            removed++;
+        } else {
+            cur = &s->next;
+        }
+    }
+    return removed;
+}
+
+int StatusEffect_ActorHas(Actor* actor, StatusEffectId id) {
+    if (!actor) return 0;
+    for (StatusEffectNode* n = actor->statusEffectList; n; n = n->next) {
+        if (n->id == id) return 1;
+    }
+    return 0;
+}
+
+void StatusEffect_ClearActor(Actor* actor) {
+    if (!actor) return;
+    StatusEffectNode* n = actor->statusEffectList;
+    while (n) {
+        StatusEffectNode* nn = n->next;
+        ZELDA_ARENA_FREE(n, "../z_actor.c", 1);
+        n = nn;
+    }
+    actor->statusEffectList = NULL;
+}
+
+static void ApplyEffectTick(PlayState* play, Actor* actor, StatusEffectNode* se) {
+    if (!actor || !se) return;
+    switch (se->id) {
+        case SE_BURN:
+            if ((se->timer & 15) == 0) { // damage every 16 frames
+                if (actor->colChkInfo.health > (u32)se->intensity) actor->colChkInfo.health -= se->intensity;
+                else actor->colChkInfo.health = 0;
+            }
+            break;
+        case SE_POISON:
+            if ((se->timer & 31) == 0) {
+                if (actor->colChkInfo.health > (u32)se->intensity) actor->colChkInfo.health -= se->intensity;
+                else actor->colChkInfo.health = 0;
+            }
+            break;
+        case SE_FREEZE:
+            actor->freezeTimer = 1;
+            break;
+        case SE_ELECTRIC:
+            // short stun per tick
+            actor->freezeTimer = 1;
+            break;
+        case SE_REGEN:
+            if ((se->timer & 31) == 0) actor->colChkInfo.health += se->intensity;
+            break;
+        case SE_STUN:
+            actor->freezeTimer = 1;
+            break;
+        default:
+            break;
+    }
+    (void)play;
+}
+
+void StatusEffect_UpdateAll(PlayState* play) {
+    ActorContext* actx = &play->actorCtx;
+    for (int cat = 0; cat < ACTORCAT_MAX; cat++) {
+        for (Actor* actor = actx->actorLists[cat].head; actor; actor = actor->next) {
+            StatusEffectNode** cur = &actor->statusEffectList;
+            while (*cur) {
+                StatusEffectNode* s = *cur;
+                if (s->timer > 0) {
+                    s->timer--;
+                    ApplyEffectTick(play, actor, s);
+                }
+                if (s->timer <= 0) {
+                    *cur = s->next;
+                    ZELDA_ARENA_FREE(s, "../z_actor.c", 1);
+                } else {
+                    cur = &s->next;
+                }
+            }
+        }
+    }
+}
+
 void Actor_UpdateAll(PlayState* play, ActorContext* actorCtx) {
     s32 i;
     Actor* actor;
@@ -2571,6 +2677,7 @@ void Actor_UpdateAll(PlayState* play, ActorContext* actorCtx) {
     Attention_Update(&actorCtx->attention, player, actor, play);
     TitleCard_Update(play, &actorCtx->titleCtx);
     DynaPoly_UpdateBgActorTransforms(play, &play->colCtx.dyna);
+     StatusEffect_UpdateAll(play);
 }
 
 void Actor_FaultPrint(Actor* actor, char* command) {

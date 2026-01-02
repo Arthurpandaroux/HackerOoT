@@ -200,6 +200,25 @@ typedef enum EnemyState {
     ENEMY_AGRESSIVE
 } EnemyState;
 
+typedef enum {
+    SE_NONE = 0,
+    SE_BURN,
+    SE_FREEZE,
+    SE_ELECTRIC,
+    SE_POISON,
+    SE_STUN,
+    SE_REGEN,
+    SE_CUSTOM_MAX
+} StatusEffectId;
+
+typedef struct StatusEffectNode {
+    StatusEffectId id;
+    u32 timer;      // frames remaining
+    u8 intensity;
+    struct StatusEffectNode* next;
+} StatusEffectNode;
+
+
 typedef struct Actor {
     /* 0x000 */ s16 id; // Actor ID
     /* 0x002 */ u8 category; // Actor category. Refer to the corresponding enum for values
@@ -262,6 +281,7 @@ typedef struct Actor {
                 u16 magicdamagemultiplier;
                 u16 physicaldefensemultiplier;
                 u16 magicdefensemultiplier;
+                struct StatusEffectNode* statusEffectList;
 
 #if DEBUG_FEATURES
     /* 0x13C */ char dbgPad[0x10];
@@ -326,6 +346,7 @@ typedef enum DoorLockType {
     DOORLOCK_BOSS,
     DOORLOCK_NORMAL_SPIRIT
 } DoorLockType;
+
 
 typedef enum NaviEnemy {
     /* 0x00 */ NAVI_ENEMY_DEFAULT,
@@ -633,6 +654,7 @@ typedef struct NpcInteractInfo {
 
 extern Gfx D_80116280[];
 
+
 void ActorShape_Init(ActorShape* shape, f32 yOffset, ActorShadowFunc shadowDraw, f32 shadowScale);
 Actor* Actor_GetHighestAggroTarget(Actor* enemy, struct PlayState* play);
 void Actor_AddThreatNearby(struct PlayState* play, Actor* source, s32 amount, f32 radius);
@@ -828,5 +850,10 @@ void Flags_SetInfTable(s32 flag);
 u16 func_80037C30(struct PlayState* play, s16 arg1);
 s32 func_80037D98(struct PlayState* play, Actor* actor, s32 arg2, s32* arg3);
 s32 Actor_TrackPlayer(struct PlayState* play, Actor* actor, Vec3s* headRot, Vec3s* torsoRot, Vec3f focusPos);
+StatusEffectNode* StatusEffect_AddToActor(Actor* actor, StatusEffectId id, s32 duration, u8 intensity);
+int StatusEffect_RemoveFromActor(Actor* actor, StatusEffectId id);
+int StatusEffect_ActorHas(Actor* actor, StatusEffectId id);
+void StatusEffect_ClearActor(Actor* actor);
+void StatusEffect_UpdateAll(struct PlayState* play); /* call once per-frame (e.g. Play_Update) */
 
 #endif

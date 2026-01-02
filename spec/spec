@@ -1170,6 +1170,30 @@ beginseg
 endseg
 
 beginseg
+    name "ovl_En_Ogre"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Ogre/z_en_ogre.o"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Ogre/ovl_En_Ogre_reloc.o"
+endseg
+
+beginseg
+    name "ovl_En_New_Actor"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_New_Actor/z_en_new_actor.o"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_New_Actor/ovl_En_New_Actor_reloc.o"
+endseg
+
+beginseg
+    name "ovl_En_Lacerater_Telethia"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Lacerater_Telethia/z_en_lacerater_telethia.o"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Lacerater_Telethia/ovl_En_Lacerater_Telethia_reloc.o"
+endseg
+
+beginseg
+    name "ovl_En_Spider_Telethia"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Spider_Telethia/z_en_spider_telethia.o"
+    include "$(BUILD_DIR)/src/overlays/actors/ovl_En_Spider_Telethia/ovl_En_Spider_Telethia_reloc.o"
+endseg
+
+beginseg
     name "gameplay_keep"
     compress
     romalign 0x1000
@@ -4270,6 +4294,34 @@ beginseg
     name "object_en_caterpillar"
     romalign 0x1000
     include "$(BUILD_DIR)/assets/objects/object_en_caterpillar/object_en_caterpillar.o"
+    number 6
+endseg
+
+beginseg
+    name "object_en_ogre"
+    romalign 0x1000
+    include "$(BUILD_DIR)/assets/objects/object_en_ogre/object_en_ogre.o"
+    number 6
+endseg
+
+beginseg
+    name "object_en_new_actor"
+    romalign 0x1000
+    include "$(BUILD_DIR)/assets/objects/object_en_new_actor/object_en_new_actor.o"
+    number 6
+endseg
+
+beginseg
+    name "object_en_lacerater_telethia"
+    romalign 0x1000
+    include "$(BUILD_DIR)/assets/objects/object_en_lacerater_telethia/object_en_lacerater_telethia.o"
+    number 6
+endseg
+
+beginseg
+    name "object_en_spider_telethia"
+    romalign 0x1000
+    include "$(BUILD_DIR)/assets/objects/object_en_spider_telethia/object_en_spider_telethia.o"
     number 6
 endseg
 
