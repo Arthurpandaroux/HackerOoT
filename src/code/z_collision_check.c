@@ -1746,6 +1746,38 @@ s32 CollisionCheck_SetATvsAC(PlayState* play, Collider* atCol, ColliderElement* 
     acElem->acDmgInfo.hitPos.x = hitPos->x;
     acElem->acDmgInfo.hitPos.y = hitPos->y;
     acElem->acDmgInfo.hitPos.z = hitPos->z;
+
+    // --- START: apply status effects from AT element's hitSpecialEffect ---
+    if ((atElem != NULL) && (acCol->actor != NULL)) {
+        u8 special = atElem->atDmgInfo.hitSpecialEffect;
+        if (special != HIT_SPECIAL_EFFECT_NONE) {
+            StatusEffectId se = SE_NONE;
+            s32 duration = 0;
+            u8 intensity = 1;
+
+            switch (special) {
+                case HIT_SPECIAL_EFFECT_BLEED:
+                    se = SE_BLEED;
+                    duration = 90; /* 2 seconds at 60fps; adjust as needed */
+                    intensity = 1;
+                    break;
+                case HIT_SPECIAL_EFFECT_SLOW:
+                    se = SE_SLOW;
+                    duration = 100;
+                    intensity = 1;
+                    break;
+                default:
+                    /* other special effects: no status applied here */
+                    break;
+            }
+
+            if (se != SE_NONE) {
+                StatusEffect_AddToActor(acCol->actor, se, duration, intensity);
+            }
+        }
+    }
+    // --- END: apply status effects ---
+
     if (!(atElem->atElemFlags & ATELEM_AT_HITMARK) && acCol->colMaterial != COL_MATERIAL_METAL &&
         acCol->colMaterial != COL_MATERIAL_WOOD && acCol->colMaterial != COL_MATERIAL_HARD) {
         acElem->acElemFlags |= ACELEM_DRAW_HITMARK;

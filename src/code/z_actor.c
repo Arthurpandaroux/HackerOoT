@@ -2465,14 +2465,8 @@ void StatusEffect_ClearActor(Actor* actor) {
 static void ApplyEffectTick(PlayState* play, Actor* actor, StatusEffectNode* se) {
     if (!actor || !se) return;
     switch (se->id) {
-        case SE_BURN:
+        case SE_BLEED:
             if ((se->timer & 15) == 0) { // damage every 16 frames
-                if (actor->colChkInfo.health > (u32)se->intensity) actor->colChkInfo.health -= se->intensity;
-                else actor->colChkInfo.health = 0;
-            }
-            break;
-        case SE_POISON:
-            if ((se->timer & 31) == 0) {
                 if (actor->colChkInfo.health > (u32)se->intensity) actor->colChkInfo.health -= se->intensity;
                 else actor->colChkInfo.health = 0;
             }
@@ -2480,15 +2474,8 @@ static void ApplyEffectTick(PlayState* play, Actor* actor, StatusEffectNode* se)
         case SE_FREEZE:
             actor->freezeTimer = 1;
             break;
-        case SE_ELECTRIC:
-            // short stun per tick
-            actor->freezeTimer = 1;
-            break;
         case SE_REGEN:
-            if ((se->timer & 31) == 0) actor->colChkInfo.health += se->intensity;
-            break;
-        case SE_STUN:
-            actor->freezeTimer = 1;
+            if ((se->timer & 39) == 0) actor->colChkInfo.health += se->intensity;
             break;
         default:
             break;

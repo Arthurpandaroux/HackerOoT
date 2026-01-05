@@ -354,7 +354,7 @@ void En_Nopon_AttackEnemyMoveThinkSetup(En_Nopon* this) {
     Animation_MorphToLoop(&this->skelanime, &nopon_thinking_animNopon_thinkingAnim, 2.0f);
 }
 
-void E n_Nopon_AttackEnemyMoveThink(En_Nopon* this, PlayState* play) {
+void En_Nopon_AttackEnemyMoveThink(En_Nopon* this, PlayState* play) {
     SkelAnime_Update(&this->skelanime);
     Actor* enemy = En_Nopon_FindNearestEnemy(this, play, 100.0f);
     if (enemy != NULL && enemy->destroy == NULL) {

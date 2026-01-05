@@ -18,13 +18,13 @@ SceneCmd test_nopon_room_0_header00[] = {
 
 s16 test_nopon_room_0_header00_objectList[LENGTH_TEST_NOPON_ROOM_0_HEADER00_OBJECTLIST] = {
     OBJECT_TITE,
-    OBJECT_EN_NOPON,
+    OBJECT_EN_TIRKIN,
 };
 
 ActorEntry test_nopon_room_0_header00_actorList[LENGTH_TEST_NOPON_ROOM_0_HEADER00_ACTORLIST] = {
     // Custom Actor
     {
-        /* Actor ID   */ ACTOR_EN_NOPON,
+        /* Actor ID   */ ACTOR_EN_TIRKIN,
         /* Position   */ { 0, -66, 0 },
         /* Rotation   */ { DEG_TO_BINANG(0.000), DEG_TO_BINANG(0.000), DEG_TO_BINANG(0.000) },
         /* Parameters */ 0x0000

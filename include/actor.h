@@ -204,9 +204,8 @@ typedef enum {
     SE_NONE = 0,
     SE_BURN,
     SE_FREEZE,
-    SE_ELECTRIC,
-    SE_POISON,
-    SE_STUN,
+    SE_BLEED,
+    SE_SLOW,
     SE_REGEN,
     SE_CUSTOM_MAX
 } StatusEffectId;

@@ -4279,7 +4279,7 @@ endseg
 beginseg
     name "object_en_tirkin"
     romalign 0x1000
-    include "$(BUILD_DIR)/assets/objects/object_en_tirkin/object_en_tirkin.o"
+    include "$(BUILD_DIR)/assets/objects/object_tirkin/object_tirkin.o"
     number 6
 endseg
 
