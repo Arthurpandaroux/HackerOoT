@@ -8,6 +8,11 @@ struct PlayState;
 void Health_InitMeter(struct PlayState* play);
 void Health_UpdateMeter(struct PlayState* play);
 void Health_DrawMeter(struct PlayState* play);
+void Health_DrawTensionAlvis(struct PlayState* play);
+void Health_DrawMeterParty1(struct PlayState* play);
+void Health_DrawTensionParty1(struct PlayState* play);
+void Health_DrawMeterParty2(struct PlayState* play);
+void Health_DrawTensionParty2(struct PlayState* play);
 void Health_UpdateBeatingHeart(struct PlayState* play);
 u32 Health_IsCritical(void);
 

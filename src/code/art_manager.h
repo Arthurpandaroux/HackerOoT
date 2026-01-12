@@ -20,6 +20,7 @@ typedef struct {
     u16 iconTex;
 
     s16 cooldownFrames;
+    s16 cooldownMax;
     ArtExecuteFunc Execute;
 
 } ArtAction;
@@ -46,7 +47,6 @@ void ArtManager_Test(Player* this, PlayState* play);
 void ArtManager_Update(ArtManager* mgr, PlayState* play, struct Player* this, Input* input);
 void ArtManager_DrawUI(ArtManager* mgr, PlayState* play);
 void Player_StartRoll(Player* this, PlayState* play);
-
 #endif
 
 

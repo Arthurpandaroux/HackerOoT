@@ -46,6 +46,8 @@ void ArtManager_Init(ArtManager* mgr) {
  void ArtManager_Update(ArtManager* mgr, PlayState* play, Player* this, Input* input) {
     mgr->selectedIndex = -1;
 
+     // Update cooldowns
+
     if (input->press.button & BTN_DUP) {
         mgr->selectedIndex = 0;
     } else if (input->press.button & BTN_DRIGHT) {
@@ -67,113 +69,89 @@ void ArtManager_Init(ArtManager* mgr) {
         mgr->selectedIndex = -1;
     }
 };
-    
+
+static const Vec2f sArtIconPos[4] = {
+    { 162.0f, 179.0f },
+    { 182.0f, 199.0f },
+    { 162.0f, 219.0f },
+    { 142.0f, 199.0f },
+};
+
+
+static void Art_DrawIcon(
+    Gfx** p,
+    ArtAction* art,
+    f32 centerX,
+    f32 centerY,
+    f32 halfSize,
+    u32* texture
+) {
+    u8 tint;
+
+    // Cooldown tint
+    if (art->cooldownMax > 0 && art->cooldownFrames > 0) {
+        tint = 120;
+    } else {
+        tint = 255;
+    }
+
+    gDPPipeSync((*p)++);
+    gDPSetCombineMode((*p)++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+
+    // Load 32x32 RGBA32 icon
+    gDPLoadTextureBlock(
+        (*p)++,
+        gAlvisMindBlast,
+        G_IM_FMT_RGBA,
+        G_IM_SIZ_32b,
+        32, 32,
+        0,
+        G_TX_CLAMP, G_TX_CLAMP,
+        G_TX_NOMASK, G_TX_NOMASK,
+        G_TX_NOLOD, G_TX_NOLOD
+    );
+
+    // Draw scaled rectangle (THIS controls size)
+    gSPTextureRectangle(
+        (*p)++,
+        (s32)((centerX - halfSize) * 4),
+        (s32)((centerY - halfSize) * 4),
+        (s32)((centerX + halfSize) * 4),
+        (s32)((centerY + halfSize) * 4),
+        G_TX_RENDERTILE,
+        0, 0,
+        32 << 5,   // texture width in 16.5 fixed-point
+        32 << 5    // texture height in 16.5 fixed-point
+    );
+}
 
 void ArtManager_DrawUI(ArtManager* mgr, PlayState* play) {
-     u32 curColorSet;
-    f32 offsetX;
-    f32 offsetY;
-    f32 offsetX2;
-    f32 offsetY2;
-    f32 offsetX3;
-    f32 offsetY3;
-    f32 offsetX4;
-    f32 offsetY4;
-    f32 halfHeartLength;
-    f32 heartCenterX;
-    f32 heartCenterY;
-    f32 heartCenterX2;
-    f32 heartCenterY2;
-    f32 heartCenterX3;
-    f32 heartCenterY3;
-    f32 heartCenterX4;
-    f32 heartCenterY4;
-    f32 heartTexCoordPerPixel;
-    offsetY = 151.0f;
-    offsetX = 130.0f;
-    offsetX2 = 150.0f;
-    offsetY2 = 171.0f;
-    offsetX3 = 130.0f;
-    offsetY3= 191.0f;
-    offsetX4 = 110.0f;
-    offsetY4 = 171.0f;
-   heartCenterY = 28.0f + offsetY;
-            heartCenterX = 32.0f + offsetX;
-            heartCenterY2 = 28.0f + offsetY2;
-            heartCenterX2 = 32.0f + offsetX2;
-            heartCenterY3 = 28.0f + offsetY3;
-            heartCenterX3 = 32.0f + offsetX3;
-            heartCenterY4 = 28.0f + offsetY4;
-            heartCenterX4 = 32.0f + offsetX4;
-            heartTexCoordPerPixel = 1.19f;
-            heartTexCoordPerPixel /= 0.75f;
-            heartTexCoordPerPixel *= 1 << 10;
-            halfHeartLength = 16.0f;
-            halfHeartLength *= 0.64f;
+    Player* player = GET_PLAYER(play);
+    if (player->heldItemAction == PLAYER_IA_NONE) {
+        return;
+    }
 
-     OPEN_DISPS(play->state.gfxCtx, "../art_manager.c", 3079);
-    gDPPipeSync(OVERLAY_DISP++);
-Gfx_SetupDL_39Overlay(play->state.gfxCtx);
+    OPEN_DISPS(play->state.gfxCtx, __FILE__, __LINE__);
+    Gfx_SetupDL_39Overlay(play->state.gfxCtx);
 
-// raw texture, no tint
-gDPSetCombineMode(OVERLAY_DISP++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+    Gfx* overlayP = play->state.gfxCtx->overlay.p;
 
-// proper render mode for alpha-blended UI
-gDPSetRenderMode(OVERLAY_DISP++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
+    // Make icons bigger here
+    f32 halfSize = 32.0f; // 64x64 icons on screen
 
-// Load your 32×32 RGBA texture
-gDPLoadTextureBlock(OVERLAY_DISP++, gCarrotIconTex,
-    G_IM_FMT_RGBA, G_IM_SIZ_32b,
-    32, 32, 0,
-    G_TX_CLAMP, G_TX_CLAMP,
-    G_TX_NOMASK, G_TX_NOMASK,
-    G_TX_NOLOD, G_TX_NOLOD
-);
-     gSPTextureRectangle(OVERLAY_DISP++, WIDE_DIV(((heartCenterX - halfHeartLength) * 4), WIDE_GET_4_3),
-                                (s32)((heartCenterY - halfHeartLength) * 4),
-                                WIDE_DIV(((heartCenterX + halfHeartLength) * 4), WIDE_GET_RATIO),
-                                (s32)((heartCenterY + halfHeartLength) * 4), G_TX_RENDERTILE, 0, 0,
-                                WIDE_DIV(heartTexCoordPerPixel, WIDE_GET_RATIO), (s32)heartTexCoordPerPixel);
+    for (s32 i = 0; i < 4; i++) {
+        ArtAction* art = &mgr->arts[i];
 
-gDPLoadTextureBlock(OVERLAY_DISP++, gCarrotIconTex,
-    G_IM_FMT_RGBA, G_IM_SIZ_32b,
-    32, 32, 0,
-    G_TX_CLAMP, G_TX_CLAMP,
-    G_TX_NOMASK, G_TX_NOMASK,
-    G_TX_NOLOD, G_TX_NOLOD
-);
-     gSPTextureRectangle(OVERLAY_DISP++, WIDE_DIV(((heartCenterX2 - halfHeartLength) * 4), WIDE_GET_4_3),
-                                (s32)((heartCenterY2 - halfHeartLength) * 4),
-                                WIDE_DIV(((heartCenterX2 + halfHeartLength) * 4), WIDE_GET_RATIO),
-                                (s32)((heartCenterY2 + halfHeartLength) * 4), G_TX_RENDERTILE, 0, 0,
-                                WIDE_DIV(heartTexCoordPerPixel, WIDE_GET_RATIO), (s32)heartTexCoordPerPixel);
+        Art_DrawIcon(
+            &overlayP,
+            art,
+            sArtIconPos[i].x,
+            sArtIconPos[i].y,
+            halfSize,
+            0
+        );
+    }
 
-gDPLoadTextureBlock(OVERLAY_DISP++, gCarrotIconTex,
-    G_IM_FMT_RGBA, G_IM_SIZ_32b,
-    32, 32, 0,
-    G_TX_CLAMP, G_TX_CLAMP,
-    G_TX_NOMASK, G_TX_NOMASK,
-    G_TX_NOLOD, G_TX_NOLOD
-);
-     gSPTextureRectangle(OVERLAY_DISP++, WIDE_DIV(((heartCenterX3 - halfHeartLength) * 4), WIDE_GET_4_3),
-                                (s32)((heartCenterY3 - halfHeartLength) * 4),
-                                WIDE_DIV(((heartCenterX3 + halfHeartLength) * 4), WIDE_GET_RATIO),
-                                (s32)((heartCenterY3 + halfHeartLength) * 4), G_TX_RENDERTILE, 0, 0,
-                                WIDE_DIV(heartTexCoordPerPixel, WIDE_GET_RATIO), (s32)heartTexCoordPerPixel);
-
-gDPLoadTextureBlock(OVERLAY_DISP++, gCarrotIconTex,
-    G_IM_FMT_RGBA, G_IM_SIZ_32b,
-    32, 32, 0,
-    G_TX_CLAMP, G_TX_CLAMP,
-    G_TX_NOMASK, G_TX_NOMASK,
-    G_TX_NOLOD, G_TX_NOLOD
-);
-     gSPTextureRectangle(OVERLAY_DISP++, WIDE_DIV(((heartCenterX4 - halfHeartLength) * 4), WIDE_GET_4_3),
-                                (s32)((heartCenterY4 - halfHeartLength) * 4),
-                                WIDE_DIV(((heartCenterX4 + halfHeartLength) * 4), WIDE_GET_RATIO),
-                                (s32)((heartCenterY4 + halfHeartLength) * 4), G_TX_RENDERTILE, 0, 0,
-                                WIDE_DIV(heartTexCoordPerPixel, WIDE_GET_RATIO), (s32)heartTexCoordPerPixel);
-    
-
-    CLOSE_DISPS(play->state.gfxCtx, "../art_manager.c", 3094);
+    play->state.gfxCtx->overlay.p = overlayP;
+    CLOSE_DISPS(play->state.gfxCtx, __FILE__, __LINE__);
 }

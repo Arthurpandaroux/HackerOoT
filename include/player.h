@@ -1063,6 +1063,9 @@ u32 Player_InitPauseDrawData(struct PlayState* play, u8* segment, SkelAnime* ske
 void Player_DrawPause(struct PlayState* play, u8* segment, SkelAnime* skelAnime, Vec3f* pos, Vec3s* rot, f32 scale,
                       s32 sword, s32 tunic, s32 shield, s32 boots);
 
+/*arts*/
+void func_8083BA90(PlayState* play, Player* this, s32 arg2, f32 xzSpeed, f32 yVelocity);
+
 // z_player_lib.c
 extern FlexSkeletonHeader* gPlayerSkelHeaders[2];
 extern u8 gPlayerModelTypes[PLAYER_MODELGROUP_MAX][PLAYER_MODELGROUPENTRY_MAX];

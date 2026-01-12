@@ -1,5 +1,6 @@
 #include "ultra64.h"
-#include "global.h"
+#include "array_count.h"
+#include "animation.h"
 #include "object_tirkin.h"
 
 u64 Tirkin_skel_tirkin_skin_ci4[] = {

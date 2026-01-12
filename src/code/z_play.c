@@ -51,6 +51,10 @@
 #include "libu64/gfxprint.h"
 #include "debug.h"
 #include "animated_materials.h"
+#include "gfx_setupdl.h"
+
+
+#include "assets/textures/parameter_static/parameter_static.h"
 
 #if CAN_INCLUDE_EXAMPLE_SCENE
 #include "assets/scenes/example/example_scene.h"
@@ -330,6 +334,34 @@ void Play_Destroy(GameState* thisx) {
 #if DEBUG_FEATURES
     Fault_RemoveClient(&D_801614B8);
 #endif
+}
+
+void Party_Init(PlayState* play) {
+    play->party.count = 0;
+    memset(play->party.members, 0, sizeof(play->party.members));
+}
+
+void Party_AddMember(PlayState* play, Actor* actor) {
+    if (!(actor->flags & ACTOR_FLAG_PARTY)) return;
+
+    for (s32 i = 0; i < 3; i++) {
+        if (play->party.members[i] == NULL) {
+            play->party.members[i] = actor;
+            play->party.count++;
+            return;
+        }
+    }
+}
+
+void Party_RemoveMember(PlayState* play, Actor* actor) {
+
+    for (s32 i = 0; i < 3; i++) {
+        if (play->party.members[i] == actor) {
+            play->party.members[i] = NULL;
+            play->party.count--;
+            return;
+        }
+    }
 }
 
 void Play_Init(GameState* thisx) {
@@ -618,7 +650,7 @@ void Play_Init(GameState* thisx) {
         DmaMgr_DmaRomToRam(0x03FEB000, gDebugCutsceneScript, sizeof(sDebugCutsceneScriptBuf));
     }
 #endif
-
+    Party_Init(this);
     //! TODO: investigate issue with this variable set to a random value
     this->gameplayFrames = 0;
 }
@@ -1381,6 +1413,8 @@ void Play_DisableMotionBlurPriority(void) {
     R_MOTION_BLUR_PRIORITY_ENABLED = false;
 }
 #endif
+
+
 
 void Play_Draw(PlayState* this) {
     GraphicsContext* gfxCtx = this->state.gfxCtx;

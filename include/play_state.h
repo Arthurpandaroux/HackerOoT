@@ -54,6 +54,12 @@ typedef struct SceneSequences {
     /* 0x01 */ u8 natureAmbienceId;
 } SceneSequences; // size = 0x2
 
+
+typedef struct PartySystem {
+    Actor*  members[3];
+    s32 count;
+} PartySystem;
+
 typedef struct PlayState {
     /* 0x00000 */ GameState state;
     /* 0x000A4 */ s16 sceneId;
@@ -137,8 +143,7 @@ typedef struct PlayState {
     ActorCsCamInfo* actorCsCamList;
     u8 actorCsUsed;
 #endif
-struct Actor* partyMembers[3];
-u8 partyMemberCount;
+PartySystem party;
 u8 AuraID;
 } PlayState; // size = 0x12518
 
@@ -177,6 +182,9 @@ void Play_TriggerRespawn(PlayState* this);
 int Play_CamIsNotFixed(PlayState* this);
 s32 func_800C0D34(PlayState* this, Actor* actor, s16* yaw);
 s32 func_800C0DB4(PlayState* this, Vec3f* pos);
+void Party_Init(PlayState* play);
+void Party_AddMember(PlayState* play, Actor* actor);
+void Party_RemoveMember(PlayState* play, Actor* actor);
 
 void Play_Init(GameState* thisx);
 void Play_Destroy(GameState* thisx);

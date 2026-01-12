@@ -30,6 +30,7 @@
 #include "config.h"
 #include "widescreen.h"
 #include "zelda_arena.h"
+#include "assets/textures/parameter_static/parameter_static.h"
 
 #include "overlays/actors/ovl_Arms_Hook/z_arms_hook.h"
 #include "overlays/actors/ovl_En_Part/z_en_part.h"
@@ -287,6 +288,36 @@ void Actor_ProjectPos(PlayState* play, Vec3f* src, Vec3f* xyzDest, f32* cappedIn
     }
 }
 
+void TargetHealth_Draw(struct PlayState* play, Vec3f* pos, s16 health, s16 maxHealth) {
+    s16 x = (s16)(160.0 + pos->x) + 32;
+    s16 y = (s16)(120.0 - pos->y) - 32;
+    u8 width = 50;
+    u8 height = 10;
+
+    if (maxHealth == 0)
+        return;
+    if (health < 0)
+        health = 0;
+
+    OPEN_DISPS(play->state.gfxCtx, "../z_actor.c", 2029);
+    Gfx_SetupDL_39Overlay(play->state.gfxCtx);
+    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 255, 255, 255, 255);
+    gDPSetEnvColor(OVERLAY_DISP++, 100, 50, 50, 255);
+
+    // Lost Health
+    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 128, 0, 0, 255);
+    gDPLoadMultiBlock_4b(OVERLAY_DISP++, gMagicMeterFillTex, 0x0000, G_TX_RENDERTILE, G_IM_FMT_I, 16, 16, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+    gSPTextureRectangle(OVERLAY_DISP++, x << 2, (y + 3) << 2, (x + width) << 2, (y + height) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
+
+    // Left Health
+    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 255, 0, 0, 255);
+    gDPLoadMultiBlock_4b(OVERLAY_DISP++, gMagicMeterFillTex, 0x0000, G_TX_RENDERTILE, G_IM_FMT_I, 16, 16, 0, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+    gSPTextureRectangle(OVERLAY_DISP++, x << 2, (y + 3) << 2, (x + (width * health / maxHealth)) << 2, (y + height) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
+
+    CLOSE_DISPS(play->state.gfxCtx, "../z_actor.c", 2158);
+}
+
+
 typedef struct AttentionColor {
     /* 0x00 */ Color_RGBA8 primary;   // Used for Navi's inner color, lock-on arrow, and lock-on reticle
     /* 0x04 */ Color_RGBA8 secondary; // Used for Navi's outer color
@@ -403,6 +434,7 @@ void Attention_Draw(Attention* attention, PlayState* play) {
         alpha = 255;
         projectdPosScale = 1.0f;
 
+
         if (attention->reticleSpinCounter != 0) {
             // Reticle is spinning so it is active, only need to draw one
             numReticles = 1;
@@ -481,6 +513,8 @@ void Attention_Draw(Attention* attention, PlayState* play) {
                         gSPDisplayList(OVERLAY_DISP++, gLockOnReticleTriangleDL);
                         Matrix_Pop();
                     }
+
+
                 }
 
                 alpha -= 255 / ARRAY_COUNT(attention->lockOnReticles);
@@ -509,7 +543,6 @@ void Attention_Draw(Attention* attention, PlayState* play) {
         MATRIX_FINALIZE_AND_LOAD(POLY_XLU_DISP++, play->state.gfxCtx, "../z_actor.c", 2153);
         gSPDisplayList(POLY_XLU_DISP++, gLockOnArrowDL);
     }
-
     CLOSE_DISPS(play->state.gfxCtx, "../z_actor.c", 2158);
 }
 
@@ -967,6 +1000,9 @@ void Actor_Init(Actor* actor, PlayState* play) {
         Actor_SetObjectDependency(play, actor);
         actor->init(actor, play);
         actor->init = NULL;
+        if (actor->colChkInfo.health > 0 && (actor->category == ACTORCAT_ENEMY || ACTORCAT_BOSS))
+            actor->maxHealth = actor->colChkInfo.health;
+        else actor->maxHealth = 0;
     }
 }
 
@@ -2716,6 +2752,7 @@ void Actor_DrawNotificationTextIcon(Actor* actor, PlayState* play, u8 enemyState
 }
 
 
+
 void Actor_Draw(PlayState* play, Actor* actor) {
 u8 EnemyState;
 
@@ -2808,6 +2845,8 @@ if (actor->enemyState == ENEMY_NULL) {
                 && (!(player->stateFlags1 & PLAYER_STATE1_10) 
                     || !(player->stateFlags1 & ACTOR_FLAG_GRASS_DESTROYED) 
                     || !(player->stateFlags1 & PLAYER_STATE1_29))) {
+                        TargetHealth_Draw(play, &actor->projectedPos, actor->colChkInfo.health, actor->maxHealth);
+
                 Actor_DrawNotificationTextIcon(actor, play, EnemyState);
             } else {
             }
@@ -2826,7 +2865,7 @@ Actor* Actor_GetHighestAggroTarget(Actor* enemy, struct PlayState* play) {
     u32 bestVal = 0;
     int bestIdx = -1;
     for (int i = 0; i < 3; i++) {
-        if (play->partyMembers[i] == NULL) {
+        if (play->party.members[i] == NULL) {
             continue;
         }
         if (enemy->aggroCounter[i] > bestVal) {
@@ -2835,7 +2874,7 @@ Actor* Actor_GetHighestAggroTarget(Actor* enemy, struct PlayState* play) {
         }
     }
     if (bestIdx >= 0) {
-        return play->partyMembers[bestIdx];
+        return play->party.members[bestIdx];
     }
     return NULL;
 }
@@ -2847,7 +2886,7 @@ void Actor_AddThreatNearby(struct PlayState* play, Actor* source, s32 amount, f3
 
     int partyIdx = -1;
     for (int i = 0; i < 3; i++) {
-        if (play->partyMembers[i] == source) {
+        if (play->party.members[i] == source) {
             partyIdx = i;
             break;
         }

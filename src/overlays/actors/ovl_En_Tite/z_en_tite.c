@@ -107,7 +107,7 @@ static ColliderJntSphElementInit sJntSphElementsInit[] = {
     {
         {
             ELEM_MATERIAL_UNK0,
-            { 0xFFCFFFFF, HIT_SPECIAL_EFFECT_NONE, 0x08 },
+            { 0xFFCFFFFF, HIT_SPECIAL_EFFECT_NONE, 0x00 },
             { 0xFFCFFFFF, HIT_BACKLASH_NONE, 0x00 },
             ATELEM_ON | ATELEM_SFX_NORMAL,
             ACELEM_ON | ACELEM_HOOKABLE,
@@ -120,7 +120,7 @@ static ColliderJntSphElementInit sJntSphElementsInit[] = {
 static ColliderJntSphInit sJntSphInit = {
     {
         COL_MATERIAL_HIT6,
-        AT_ON | AT_TYPE_ENEMY,
+        AT_ON | AT_TYPE_ENEMY | AT_PHYSICAL,
         AC_ON | AC_TYPE_PLAYER,
         OC1_ON | OC1_TYPE_ALL,
         OC2_TYPE_1,

@@ -178,13 +178,6 @@ void En_Nopon_Init(Actor* thisx, PlayState* play) {
     this->collider_Attack1.elem.atDmgInfo.dmgFlags = DMG_SWORD;
     this->collider.elem.atDmgInfo.dmgFlags = DMG_SWORD;
     this->attackCooldown = 100.0f;
-    for (int i = 0; i < ARRAY_COUNT(play->partyMembers); i++) {
-        if (play->partyMembers[i] == NULL) {
-            play->partyMembers[i] = &this->actor;
-            play->partyMemberCount++;
-            break;
-        }
-    }
         }
 
 

@@ -28,7 +28,7 @@
 #include "assets/objects/gameplay_keep/gameplay_keep.h"
 #include "assets/objects/gameplay_dangeon_keep/gameplay_dangeon_keep.h"
 
-#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_FRIENDLY)
+#define FLAGS (ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_FRIENDLY | ACTOR_FLAG_PARTY) 
 
 void En_Tirkin_Init(Actor* thisx, PlayState* play);
 void En_Tirkin_Destroy(Actor* thisx, PlayState* play);
@@ -141,19 +141,13 @@ void En_Tirkin_Init(Actor* thisx, PlayState* play) {
     Actor_ProcessInitChain(&this->actor, sInitChain);
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 10.0f);
     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
-    this->actor.colChkInfo.health = 30;
+    this->actor.colChkInfo.health = 200;
     this->actor.speed = 2.0f;
      this->actor.world.pos.y += 20.0f;
     this->attackCooldown = 160.0f;
     this->damagedTimer = 100;
     this->attackCooldownFire = 100.0f;
-    for (int i = 0; i < ARRAY_COUNT(play->partyMembers); i++) {
-        if (play->partyMembers[i] == NULL) {
-            play->partyMembers[i] = &this->actor;
-            play->partyMemberCount++;
-            break;
-        }
-    }
+    play->party.members[1] = thisx;
 
      En_Tirkin_SetupIdle(this);
 }
@@ -441,9 +435,9 @@ void En_Tirkin_Heal(En_Tirkin* this, PlayState* play) {
     
     if (SkelAnime_Update(&this->skelanime)) {  // Animation finished
         // Heal all party members (including the Tirkin himself)
-        for (int i = 0; i < play->partyMemberCount; i++) {
-            if (play->partyMembers[i] != NULL) {
-                Actor* member = play->partyMembers[i];
+        for (int i = 0; i < play->party.count; i++) {
+            if (play->party.members[i] != NULL) {
+                Actor* member = play->party.members[i];
                 member->colChkInfo.health += 10;  // Heal amount (adjust as needed)
                 // Clamp to max health (assuming 30 is max for party members; adjust based on your actor's max)
                 if (member->colChkInfo.health > 30) {

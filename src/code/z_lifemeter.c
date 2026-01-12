@@ -307,216 +307,316 @@ static void* sHeartDDTextures[] = {
 };
 
 void Health_DrawMeter(PlayState* play) {
-    s32 pad[5];
-    void* heartBgImg;
+    InterfaceContext* interfaceCtx = &play->interfaceCtx;
+    GraphicsContext* gfxCtx = play->state.gfxCtx;
+
+    s16 health    = gSaveContext.save.info.playerData.health;
+    s16 maxHealth = gSaveContext.save.info.playerData.healthCapacity;
+
+    if (health <= 0 || maxHealth <= 0) {
+        return;
+    }
+
+    f32 healthFrac = (f32)health / (f32)maxHealth;
+    healthFrac = CLAMP(healthFrac, 0.0f, 1.0f);
+
+    // ---- HUD placement ----
+    s16 x = 3;
+    s16 y = 69;
+    s16 width  = 50;
+    s16 height = 7;
+
+#if IS_INV_EDITOR_ENABLED
+    if (IS_INV_EDITOR_ACTIVE) {
+        y += gDebug.invDebug.miscDebug.hudTopPosY;
+    }
+#endif
+
+    // ---- Bouncing shine scroll ----
+    s32 texWidthFP = 16 << 5; // 16px texture, fixed-point
+    s32 t = play->gameplayFrames * 2;
+    s32 phase = t % (texWidthFP * 2);
+    s32 shineScroll = (phase < texWidthFP) ? phase : (texWidthFP * 2 - phase);
+
+    OPEN_DISPS(gfxCtx, "../z_lifebar.c", 1);
+    Gfx_SetupDL_39Overlay(gfxCtx);
+
+    gDPLoadMultiBlock_4b(
+        OVERLAY_DISP++, gMagicMeterFillTex, 0x0000, G_TX_RENDERTILE,
+        G_IM_FMT_I, 16, 16, 0,
+        G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP,
+        G_TX_NOMASK, G_TX_NOMASK,
+        G_TX_NOLOD, G_TX_NOLOD
+    );
+
+    // =========================================================
+    // 1) BACKGROUND (empty health)
+    // =========================================================
+    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0, 60, 70, interfaceCtx->healthAlpha);
+    gDPSetRenderMode(OVERLAY_DISP++, G_RM_PASS, G_RM_AA_XLU_SURF2);
+
+    gDPSetCombineLERP(OVERLAY_DISP++,
+        TEXEL0, 0, PRIMITIVE, 0,
+        TEXEL0, 0, PRIMITIVE, 0,
+        TEXEL0, 0, PRIMITIVE, 0,
+        TEXEL0, 0, PRIMITIVE, 0
+    );
+
+    gSPTextureRectangle(
+        OVERLAY_DISP++,
+        x << 2, y << 2,
+        (x + width) << 2, (y + height) << 2,
+        G_TX_RENDERTILE,
+        0, 0,
+        1 << 10, 1 << 10
+    );
+
+    // =========================================================
+    // 2) FILLED HEALTH BAR
+    // =========================================================
+    s16 filledW = (s16)(width * healthFrac);
+
+    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0, 255, 240, interfaceCtx->healthAlpha);
+
+    gSPTextureRectangle(
+        OVERLAY_DISP++,
+        x << 2, y << 2,
+        (x + filledW) << 2, (y + height) << 2,
+        G_TX_RENDERTILE,
+        0, 0,
+        1 << 10, 1 << 10
+    );
+
+    // =========================================================
+    // 3) EDGE GLOW (top + bottom)
+    // =========================================================
+    gDPSetRenderMode(OVERLAY_DISP++, G_RM_PASS, G_RM_AA_XLU_SURF2);
+
+// Additive-style combine
+gDPSetCombineLERP(OVERLAY_DISP++,
+    TEXEL0, 0, PRIMITIVE, 0,
+    TEXEL0, 0, PRIMITIVE, 0,
+    TEXEL0, 0, PRIMITIVE, 0,
+    TEXEL0, 0, PRIMITIVE, 0
+);
+
+// Bright aqua glow
+gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0, 220, 255, 220);
+
+// Top edge (2px)
+gSPTextureRectangle(
+    OVERLAY_DISP++,
+    x << 2,
+    y << 2,
+    (x + filledW) << 2,
+    (y + 2) << 2,
+    G_TX_RENDERTILE,
+    0, 0,
+    1 << 10, 1 << 10
+);
+
+// Bottom edge (2px)
+gSPTextureRectangle(
+    OVERLAY_DISP++,
+    x << 2,
+    (y + height - 2) << 2,
+    (x + filledW) << 2,
+    (y + height) << 2,
+    G_TX_RENDERTILE,
+    0, 0,
+    1 << 10, 1 << 10
+);
+
+    // =========================================================
+    // 4) FULL-HEIGHT BOUNCING SHINE
+    // =========================================================
+    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 120, 255, 255, 70);
+
+    gSPTextureRectangle(
+        OVERLAY_DISP++,
+        x << 2, y << 2,
+        (x + filledW) << 2, (y + height) << 2,
+        G_TX_RENDERTILE,
+        shineScroll, 0,
+        1 << 10, 1 << 10
+    );
+
+    CLOSE_DISPS(gfxCtx, "../z_lifebar.c", 120);
+}
+
+void Health_DrawTensionAlvis(PlayState* play) {
     u32 curColorSet;
     f32 offsetX;
     f32 offsetY;
-    s32 heartIndex;
     f32 halfHeartLength;
     f32 heartCenterX;
     f32 heartCenterY;
     f32 heartTexCoordPerPixel;
-    InterfaceContext* interfaceCtx = &play->interfaceCtx;
-    GraphicsContext* gfxCtx = play->state.gfxCtx;
-    Vtx* beatingHeartVtx = interfaceCtx->beatingHeartVtx;
-    s32 curHeartFraction = gSaveContext.save.info.playerData.health % 0x10;
-    s16 totalHeartCount = gSaveContext.save.info.playerData.healthCapacity / 0x10;
-    s16 fullHeartCount = gSaveContext.save.info.playerData.health / 0x10;
-    s32 pad2;
-    f32 beatingHeartPulsingSize = interfaceCtx->beatingHeartOscillator * 0.1f;
-    s32 curCombineModeSet = 0;
-    u8* curBgImgLoaded = NULL;
-    s32 ddHeartCountMinusOne = gSaveContext.save.info.inventory.defenseHearts - 1;
-
-    u8 posY = 0;
-
-#if IS_INV_EDITOR_ENABLED
-    if (IS_INV_EDITOR_ACTIVE) {
-        posY = gDebug.invDebug.miscDebug.hudTopPosY;
-    }
-#endif
-
-    OPEN_DISPS(gfxCtx, "../z_lifemeter.c", 353);
-
-    if (!(gSaveContext.save.info.playerData.health % 0x10)) {
-        fullHeartCount--;
-    }
-
-    curColorSet = -1;
-    offsetY = 0.0f;
-    offsetX = 0.0f;
-
-    for (heartIndex = 0; heartIndex < totalHeartCount; heartIndex++) {
-        if ((ddHeartCountMinusOne < 0) || (heartIndex > ddHeartCountMinusOne)) {
-            if (heartIndex < fullHeartCount) {
-                if (curColorSet != 0) {
-                    curColorSet = 0;
-                    gDPPipeSync(OVERLAY_DISP++);
-                    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, interfaceCtx->heartsPrimR[0], interfaceCtx->heartsPrimG[0],
-                                    interfaceCtx->heartsPrimB[0], interfaceCtx->healthAlpha);
-                    gDPSetEnvColor(OVERLAY_DISP++, interfaceCtx->heartsEnvR[0], interfaceCtx->heartsEnvG[0],
-                                   interfaceCtx->heartsEnvB[0], 255);
-                }
-            } else if (heartIndex == fullHeartCount) {
-                if (curColorSet != 1) {
-                    curColorSet = 1;
-                    gDPPipeSync(OVERLAY_DISP++);
-                    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, interfaceCtx->beatingHeartPrim[0],
-                                    interfaceCtx->beatingHeartPrim[1], interfaceCtx->beatingHeartPrim[2],
-                                    interfaceCtx->healthAlpha);
-                    gDPSetEnvColor(OVERLAY_DISP++, interfaceCtx->beatingHeartEnv[0], interfaceCtx->beatingHeartEnv[1],
-                                   interfaceCtx->beatingHeartEnv[2], 255);
-                }
-            } else if (heartIndex > fullHeartCount) {
-                if (curColorSet != 2) {
-                    curColorSet = 2;
-                    gDPPipeSync(OVERLAY_DISP++);
-                    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, interfaceCtx->heartsPrimR[0], interfaceCtx->heartsPrimG[0],
-                                    interfaceCtx->heartsPrimB[0], interfaceCtx->healthAlpha);
-                    gDPSetEnvColor(OVERLAY_DISP++, interfaceCtx->heartsEnvR[0], interfaceCtx->heartsEnvG[0],
-                                   interfaceCtx->heartsEnvB[0], 255);
-                }
-            } else {
-                if (curColorSet != 3) {
-                    curColorSet = 3;
-                    gDPPipeSync(OVERLAY_DISP++);
-                    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, interfaceCtx->heartsPrimR[1], interfaceCtx->heartsPrimG[1],
-                                    interfaceCtx->heartsPrimB[1], interfaceCtx->healthAlpha);
-                    gDPSetEnvColor(OVERLAY_DISP++, interfaceCtx->heartsEnvR[1], interfaceCtx->heartsEnvG[1],
-                                   interfaceCtx->heartsEnvB[1], 255);
-                }
-            }
-
-            if (heartIndex < fullHeartCount) {
-                heartBgImg = gHeartFullTex;
-            } else if (heartIndex == fullHeartCount) {
-                heartBgImg = sHeartTextures[curHeartFraction];
-            } else {
-                heartBgImg = gHeartEmptyTex;
-            }
-        } else {
-            if (heartIndex < fullHeartCount) {
-                if (curColorSet != 4) {
-                    curColorSet = 4;
-                    gDPPipeSync(OVERLAY_DISP++);
-                    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, sHeartsDDPrim[0][0], sHeartsDDPrim[0][1], sHeartsDDPrim[0][2],
-                                    interfaceCtx->healthAlpha);
-                    gDPSetEnvColor(OVERLAY_DISP++, sHeartsDDEnv[0][0], sHeartsDDEnv[0][1], sHeartsDDEnv[0][2], 255);
-                }
-            } else if (heartIndex == fullHeartCount) {
-                if (curColorSet != 5) {
-                    curColorSet = 5;
-                    gDPPipeSync(OVERLAY_DISP++);
-                    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, sBeatingHeartsDDPrim[0], sBeatingHeartsDDPrim[1],
-                                    sBeatingHeartsDDPrim[2], interfaceCtx->healthAlpha);
-                    gDPSetEnvColor(OVERLAY_DISP++, sBeatingHeartsDDEnv[0], sBeatingHeartsDDEnv[1],
-                                   sBeatingHeartsDDEnv[2], 255);
-                }
-            } else if (heartIndex > fullHeartCount) {
-                if (curColorSet != 6) {
-                    curColorSet = 6;
-                    gDPPipeSync(OVERLAY_DISP++);
-                    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, sHeartsDDPrim[0][0], sHeartsDDPrim[0][1], sHeartsDDPrim[0][2],
-                                    interfaceCtx->healthAlpha);
-                    gDPSetEnvColor(OVERLAY_DISP++, sHeartsDDEnv[0][0], sHeartsDDEnv[0][1], sHeartsDDEnv[0][2], 255);
-                }
-            } else {
-                if (curColorSet != 7) {
-                    curColorSet = 7;
-                    gDPPipeSync(OVERLAY_DISP++);
-                    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, sHeartsDDPrim[1][0], sHeartsDDPrim[1][1], sHeartsDDPrim[1][2],
-                                    interfaceCtx->healthAlpha);
-                    gDPSetEnvColor(OVERLAY_DISP++, sHeartsDDEnv[1][0], sHeartsDDEnv[1][1], sHeartsDDEnv[1][2], 255);
-                }
-            }
-
-            if (heartIndex < fullHeartCount) {
-                heartBgImg = gDefenseHeartFullTex;
-            } else if (heartIndex == fullHeartCount) {
-                heartBgImg = sHeartDDTextures[curHeartFraction];
-            } else {
-                heartBgImg = gDefenseHeartEmptyTex;
-            }
-        }
-
-        if (curBgImgLoaded != heartBgImg) {
-            curBgImgLoaded = heartBgImg;
-            gDPLoadTextureBlock(OVERLAY_DISP++, heartBgImg, G_IM_FMT_IA, G_IM_SIZ_8b, 16, 16, 0,
-                                G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK,
-                                G_TX_NOLOD, G_TX_NOLOD);
-        }
-
-        if (heartIndex != fullHeartCount) {
-            if ((ddHeartCountMinusOne < 0) || (heartIndex > ddHeartCountMinusOne)) {
-                if (curCombineModeSet != 1) {
-                    curCombineModeSet = 1;
-                    Gfx_SetupDL_39Overlay(gfxCtx);
-                    gDPSetCombineLERP(OVERLAY_DISP++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE,
-                                      0, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                }
-            } else {
-                if (curCombineModeSet != 3) {
-                    curCombineModeSet = 3;
-                    Gfx_SetupDL_39Overlay(gfxCtx);
-                    gDPSetCombineLERP(OVERLAY_DISP++, ENVIRONMENT, PRIMITIVE, TEXEL0, PRIMITIVE, TEXEL0, 0, PRIMITIVE,
-                                      0, ENVIRONMENT, PRIMITIVE, TEXEL0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0);
-                }
-            }
-
-            heartCenterY = 26.0f + offsetY + posY;
-            heartCenterX = 30.0f + offsetX;
+    offsetY = 26.0f;
+    offsetX = -15.0f;
+   heartCenterY = 28.0f + offsetY;
+            heartCenterX = 32.0f + offsetX;
             heartTexCoordPerPixel = 1.0f;
-            heartTexCoordPerPixel /= 0.68f;
-            heartTexCoordPerPixel *= 1 << 10;
-            halfHeartLength = 8.0f;
-            halfHeartLength *= 0.68f;
-            gSPTextureRectangle(OVERLAY_DISP++, WIDE_DIV(((heartCenterX - halfHeartLength) * 4), WIDE_GET_4_3),
+            heartTexCoordPerPixel /= 1.8f;
+            heartTexCoordPerPixel *= 2 << 10;
+            halfHeartLength = 17.0f;
+            halfHeartLength *= 0.84f;
+
+
+    OPEN_DISPS(play->state.gfxCtx, __FILE__, __LINE__);
+
+    gDPPipeSync(OVERLAY_DISP++);
+    Gfx_SetupDL_39Overlay(play->state.gfxCtx);
+
+    gDPSetCombineMode(OVERLAY_DISP++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+    gDPSetRenderMode(OVERLAY_DISP++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
+    gDPSetTextureFilter(OVERLAY_DISP++, G_TF_POINT);
+
+    gDPLoadTextureBlock(
+        OVERLAY_DISP++,
+        gAlvisTensionTex,
+        G_IM_FMT_RGBA, G_IM_SIZ_32b,
+        32, 32, 0,
+        G_TX_CLAMP, G_TX_CLAMP,
+        G_TX_NOMASK, G_TX_NOMASK,
+        G_TX_NOLOD, G_TX_NOLOD
+    );
+
+   gSPTextureRectangle(OVERLAY_DISP++, WIDE_DIV(((heartCenterX - halfHeartLength) * 4), WIDE_GET_4_3),
                                 (s32)((heartCenterY - halfHeartLength) * 4),
                                 WIDE_DIV(((heartCenterX + halfHeartLength) * 4), WIDE_GET_RATIO),
                                 (s32)((heartCenterY + halfHeartLength) * 4), G_TX_RENDERTILE, 0, 0,
                                 WIDE_DIV(heartTexCoordPerPixel, WIDE_GET_RATIO), (s32)heartTexCoordPerPixel);
-        } else {
-            if ((ddHeartCountMinusOne < 0) || (heartIndex > ddHeartCountMinusOne)) {
-                if (curCombineModeSet != 2) {
-                    curCombineModeSet = 2;
-                    Gfx_SetupDL_42Overlay(gfxCtx);
-                    gDPSetCombineLERP(OVERLAY_DISP++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE,
-                                      0, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-                }
-            } else {
-                if (curCombineModeSet != 4) {
-                    curCombineModeSet = 4;
-                    Gfx_SetupDL_42Overlay(gfxCtx);
-                    gDPSetCombineLERP(OVERLAY_DISP++, ENVIRONMENT, PRIMITIVE, TEXEL0, PRIMITIVE, TEXEL0, 0, PRIMITIVE,
-                                      0, ENVIRONMENT, PRIMITIVE, TEXEL0, PRIMITIVE, TEXEL0, 0, PRIMITIVE, 0);
-                }
-            }
 
-            {
-                Mtx* matrix = GRAPH_ALLOC(gfxCtx, sizeof(Mtx));
-                f32 wideOffsetX = USE_WIDESCREEN ? (offsetX - (30.f * WIDE_GET_16_9)) : offsetX;
-                Matrix_SetTranslateScaleMtx2(
-                    matrix, 1.0f - (0.32f * beatingHeartPulsingSize), 1.0f - (0.32f * beatingHeartPulsingSize),
-                    1.0f - (0.32f * beatingHeartPulsingSize), -130.0f + wideOffsetX, 94.5f - offsetY - posY, 0.0f);
-                gSPMatrix(OVERLAY_DISP++, matrix, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
-                gSPVertex(OVERLAY_DISP++, beatingHeartVtx, 4, 0);
-                gSP1Quadrangle(OVERLAY_DISP++, 0, 2, 3, 1, 0);
-            }
-        }
+    CLOSE_DISPS(play->state.gfxCtx, __FILE__, __LINE__);
+}
 
-        // Move offset to next heart
-        offsetX += 10.0f;
+void Health_DrawMeterParty1(PlayState* play) {
+     if (play->party.members[1] == NULL) {
+        return;
+        };
+    s32 pad[5];
+    void* heartBgImg;
+    Actor* member = play->party.members[1];
+    InterfaceContext* interfaceCtx = &play->interfaceCtx;
+    GraphicsContext* gfxCtx = play->state.gfxCtx;
 
-        // Go down one line after 10 hearts
-        if (heartIndex == 9) {
-            offsetY += 10.0f;
-            offsetX = 0.0f;
-        }
+
+    s16 health = member->colChkInfo.health;
+    s16 maxHealth = member->maxHealth;
+
+    if (maxHealth <= 0 || health <= 0) {
+        return;
     }
 
-    CLOSE_DISPS(gfxCtx, "../z_lifemeter.c", 606);
+    f32 healthFrac = (f32)health / (f32)maxHealth;
+    healthFrac = CLAMP(healthFrac, 0.0f, 1.0f);
+
+    // --- Screen position (top-left HUD style) ---
+    s16 x = 40;
+    s16 y = 40;
+
+    s16 width  = 300;
+    s16 height = 8;
+
+#if IS_INV_EDITOR_ENABLED
+    if (IS_INV_EDITOR_ACTIVE) {
+        y += gDebug.invDebug.miscDebug.hudTopPosY;
+    }
+#endif
+
+    OPEN_DISPS(gfxCtx, "../z_lifebar.c", 1);
+    gDPPipeSync(OVERLAY_DISP++);
+    Gfx_SetupDL_39Overlay(gfxCtx);
+
+    // -------- Background (empty health) --------
+    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0, 60, 70, interfaceCtx->healthAlpha);
+    gDPSetEnvColor(OVERLAY_DISP++, 0, 0, 0, 255);
+
+    gDPLoadMultiBlock_4b(
+        OVERLAY_DISP++, gMagicMeterFillTex, 0x0000, G_TX_RENDERTILE,
+        G_IM_FMT_I, 16, 16, 0,
+        G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP,
+        G_TX_NOMASK, G_TX_NOMASK,
+        G_TX_NOLOD, G_TX_NOLOD
+    );
+
+    gSPTextureRectangle(
+        OVERLAY_DISP++,
+        x << 2, y << 2,
+        (x + width) << 2, (y + height) << 2,
+        G_TX_RENDERTILE,
+        0, 0,
+        1 << 10, 1 << 10
+    );
+
+    // -------- Filled health --------
+    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0, 255, 240, interfaceCtx->healthAlpha);
+
+    gSPTextureRectangle(
+        OVERLAY_DISP++,
+        x << 2, y << 2,
+        (x + (s16)(width * healthFrac)) << 2,
+        (y + height) << 2,
+        G_TX_RENDERTILE,
+        0, 0,
+        1 << 10, 1 << 10
+    );
+
+    CLOSE_DISPS(gfxCtx, "../z_lifebar.c", 120);
 }
+void Health_DrawTensionParty1(PlayState* play) {
+
+    if (play->party.members[1] == NULL) {
+    return;
+}
+
+    u32 curColorSet;
+    f32 offsetX;
+    f32 offsetY;
+    f32 halfHeartLength;
+    f32 heartCenterX;
+    f32 heartCenterY;
+    f32 heartTexCoordPerPixel;
+    offsetY = 64.0f;
+    offsetX = -15.0f;
+   heartCenterY = 28.0f + offsetY;
+            heartCenterX = 32.0f + offsetX;
+            heartTexCoordPerPixel = 1.0f;
+            heartTexCoordPerPixel /= 1.8f;
+            heartTexCoordPerPixel *= 2 << 10;
+            halfHeartLength = 17.0f;
+            halfHeartLength *= 0.84f;
+
+
+    OPEN_DISPS(play->state.gfxCtx, __FILE__, __LINE__);
+
+    gDPPipeSync(OVERLAY_DISP++);
+    Gfx_SetupDL_39Overlay(play->state.gfxCtx);
+
+    gDPSetCombineMode(OVERLAY_DISP++, G_CC_DECALRGBA, G_CC_DECALRGBA);
+    gDPSetRenderMode(OVERLAY_DISP++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
+    gDPSetTextureFilter(OVERLAY_DISP++, G_TF_POINT);
+
+    gDPLoadTextureBlock(
+        OVERLAY_DISP++,
+        gTirkinTensionTex,
+        G_IM_FMT_RGBA, G_IM_SIZ_32b,
+        32, 32, 0,
+        G_TX_CLAMP, G_TX_CLAMP,
+        G_TX_NOMASK, G_TX_NOMASK,
+        G_TX_NOLOD, G_TX_NOLOD
+    );
+
+   gSPTextureRectangle(OVERLAY_DISP++, WIDE_DIV(((heartCenterX - halfHeartLength) * 4), WIDE_GET_4_3),
+                                (s32)((heartCenterY - halfHeartLength) * 4),
+                                WIDE_DIV(((heartCenterX + halfHeartLength) * 4), WIDE_GET_RATIO),
+                                (s32)((heartCenterY + halfHeartLength) * 4), G_TX_RENDERTILE, 0, 0,
+                                WIDE_DIV(heartTexCoordPerPixel, WIDE_GET_RATIO), (s32)heartTexCoordPerPixel);
+
+    CLOSE_DISPS(play->state.gfxCtx, __FILE__, __LINE__);
+}
+
 
 void Health_UpdateBeatingHeart(PlayState* play) {
     InterfaceContext* interfaceCtx = &play->interfaceCtx;

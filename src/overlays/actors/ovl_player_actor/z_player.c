@@ -4508,9 +4508,10 @@ s32 func_80837818(Player* this) {
 
 void func_80837918(Player* this, s32 quadIndex, u32 dmgFlags) {
     if (this->meleeWeaponAnimation == PLAYER_MWA_JUMPSLASH_FINISH) {
-    this->meleeWeaponQuads[quadIndex].elem.atDmgInfo.damage = 20;
+    this->meleeWeaponQuads[quadIndex].elem.atDmgInfo.damage = 2;
     } else {
         this->meleeWeaponQuads[quadIndex].elem.atDmgInfo.damage = 1;
+        this->meleeWeaponQuads[quadIndex].elem.atDmgInfo.damageMagic = 1;
     }
     
 
@@ -5347,7 +5348,6 @@ Actor* Player_SpawnFairy(PlayState* play, Player* this, Vec3f* arg2, Vec3f* arg3
 
     Player_GetRelativePosition(this, arg2, arg3, &pos);
 
-    return Actor_Spawn(&play->actorCtx, play, ACTOR_EN_ELF, pos.x, pos.y, pos.z, 0, 0, 0, type);
 }
 
 f32 func_808396F4(PlayState* play, Player* this, Vec3f* arg2, Vec3f* arg3, CollisionPoly** arg4, s32* arg5) {
@@ -6353,7 +6353,6 @@ s32 func_8083BB20(Player* this) {
 
 s32 func_8083BBA0(Player* this, PlayState* play) {
     if (func_8083BB20(this) && (sFloorType != FLOOR_TYPE_7)) {
-        func_8083BA90(play, this, PLAYER_MWA_JUMPSLASH_START, 3.0f, 4.5f);
         return 1;
     }
 
@@ -10499,7 +10498,7 @@ void Player_Action_80846578(Player* this, PlayState* play) {
 static ColliderCylinderInit D_80854624 = {
     {
         COL_MATERIAL_HIT5,
-        AT_NONE,
+        AT_ON | AT_PHYSICAL,
         AC_ON | AC_TYPE_ENEMY,
         OC1_ON | OC1_TYPE_ALL,
         OC2_TYPE_PLAYER,
@@ -10507,7 +10506,7 @@ static ColliderCylinderInit D_80854624 = {
     },
     {
         ELEM_MATERIAL_UNK1,
-        { 0x00000000, HIT_SPECIAL_EFFECT_NONE, 0x00 },
+        { 0x00000000, HIT_SPECIAL_EFFECT_BLEED, 0x00 },
         { 0xFFCFFFFF, HIT_BACKLASH_NONE, 0x00 },
         ATELEM_NONE,
         ACELEM_ON,
@@ -10519,7 +10518,7 @@ static ColliderCylinderInit D_80854624 = {
 static ColliderQuadInit D_80854650 = {
     {
         COL_MATERIAL_NONE,
-        AT_ON | AT_TYPE_PLAYER | AT_PHYSICAL,
+        AT_ON | AT_TYPE_PLAYER | AT_MAGIC,
         AC_NONE,
         OC1_NONE,
         OC2_TYPE_PLAYER,
@@ -10527,7 +10526,7 @@ static ColliderQuadInit D_80854650 = {
     },
     {
         ELEM_MATERIAL_UNK2,
-        { 0x00000100, HIT_SPECIAL_EFFECT_NONE, 0x01 },
+        { 0x00000100, HIT_SPECIAL_EFFECT_BLEED, 0x01 },
         { 0xFFCFFFFF, HIT_BACKLASH_NONE, 0x00 },
         ATELEM_ON | ATELEM_SFX_NORMAL,
         ACELEM_NONE,
@@ -10539,7 +10538,7 @@ static ColliderQuadInit D_80854650 = {
 static ColliderQuadInit D_808546A0 = {
     {
         COL_MATERIAL_METAL,
-        AT_ON | AT_TYPE_PLAYER,
+        AT_ON | AT_TYPE_PLAYER | AT_PHYSICAL,
         AC_ON | AC_HARD | AC_TYPE_ENEMY,
         OC1_NONE,
         OC2_TYPE_PLAYER,
@@ -10899,13 +10898,8 @@ void Player_Init(Actor* thisx, PlayState* play2) {
     Map_SavePlayerInitialInfo(play);
     MREG(64) = 0;
 
-    for (int i = 0; i < ARRAY_COUNT(play->partyMembers); i++) {
-        if (play->partyMembers[i] == NULL) {
-            play->partyMembers[i] = &this->actor;
-            play->partyMemberCount++;
-            break;
-        }
-    }
+         play->party.members[0] = thisx;
+    
 }
 
 void Player_ApproachZeroBinang(s16* pValue) {
@@ -11839,8 +11833,9 @@ void Player_UpdateCommon(Player* this, PlayState* play, Input* input) {
     if (this->unk_890 != 0) {
         this->unk_890--;
     }
-
+     if (this->heldItemAction != PLAYER_IA_NONE) {
     ArtManager_Update(&this->artManager, play, this, input);
+     };
     Player_UpdateInterface(play, this);
 
     Player_UpdateZTargeting(this, play);

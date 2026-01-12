@@ -60,7 +60,7 @@ static ColliderJntSphElementInit sJntSphElementsInit[] = {
     {
         {
             ELEM_MATERIAL_UNK0,
-            { 0xFFCFFFFF, HIT_SPECIAL_EFFECT_NONE,  0x10, 0x10},
+            { 0xFFCFFFFF, HIT_SPECIAL_EFFECT_BLEED,  0x10, 0x10},
             { 0x00000000, HIT_BACKLASH_NONE, 0x00 },
             ATELEM_ON | ATELEM_SFX_NORMAL,
             ACELEM_NONE,
@@ -71,7 +71,7 @@ static ColliderJntSphElementInit sJntSphElementsInit[] = {
     {
         {
             ELEM_MATERIAL_UNK0,
-            { 0x00000000, HIT_SPECIAL_EFFECT_NONE, 0x20, 0x20},
+            { 0x00000000, HIT_SPECIAL_EFFECT_BLEED, 0x10, 0x10},
             { 0xFFCFFFFF, HIT_BACKLASH_NONE, 0x00 },
             ATELEM_NONE,
             ACELEM_ON | ACELEM_HOOKABLE,
@@ -177,9 +177,9 @@ void EnSkb_Init(Actor* thisx, PlayState* play) {
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 0.0f);
     this->actor.focus.pos = this->actor.world.pos;
     this->actor.colChkInfo.mass = MASS_HEAVY;
-    this->actor.colChkInfo.health = 20;
-    thisx->physicaldamagemultiplier = 3.0f;
-    thisx->magicdamagemultiplier = 2.0f;
+    this->actor.colChkInfo.health = 300;
+    thisx->physicaldamagemultiplier = 1.0f;
+    thisx->magicdamagemultiplier = 1.0f;
     this->actor.shape.yOffset = -8000.0f;
     this->actor.colChkInfo.damage = 1;
     SkelAnime_Init(play, &this->skelAnime, &gStalchildSkel, &gStalchildUncurlingAnim, this->jointTable,

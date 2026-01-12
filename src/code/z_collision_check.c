@@ -3115,19 +3115,32 @@ void CollisionCheck_ApplyDamage(PlayState* play, CollisionCheckContext* colChkCt
         return;
     }
 
+
     ASSERT(elem->acHitElem != NULL, "pclobj_elem->ac_hit_elem != NULL", "../z_collision_check.c", 6493);
     tbl = col->actor->colChkInfo.damageTable;
 
    /* Compute damage from the AT element. Avoid dereferencing uninitialized pointers.
        Use the AT element's damage / damageMagic and subtract AC element defense values.
        (Original code incorrectly referenced an uninitialized Actor pointer.) */
-    if (elem->acHit->atFlags & AT_PHYSICAL) {
-        damage = (f32)(elem->acHitElem->atDmgInfo.damage) - (f32)(elem->acDmgInfo.defense);
-    } else if (elem->acHit->atFlags & AT_MAGIC) {
-        damage = (f32)(elem->acHitElem->atDmgInfo.damageMagic) - (f32)(elem->acDmgInfo.defenseMagic);
-    } else {
-        damage = 0.0f;
-    }
+   if (elem->acHitElem->atElemFlags & AT_PHYSICAL) {
+    damage = elem->acHitElem->atDmgInfo.damage
+           - elem->acDmgInfo.defense;
+} else if (elem->acHitElem->atElemFlags & AT_MAGIC) {
+    damage = elem->acHitElem->atDmgInfo.damageMagic
+           - elem->acDmgInfo.defenseMagic;
+} else {
+    /* vanilla-compatible fallback */
+    damage = elem->acHitElem->atDmgInfo.damage;
+}
+
+if (damage < 0.0f) {
+    damage = 0.0f;
+}
+
+if (!(col->acFlags & AC_HARD)) {
+    col->actor->colChkInfo.damage += damage;
+}
+
 
     if (damage < 0.0f) {
         damage = 0.0f;

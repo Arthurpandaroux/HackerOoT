@@ -167,6 +167,8 @@ typedef struct ActorShape {
 // Note: Not implemented yet.
 #define ACTOR_FLAG_FREEZE_EXCEPTION (1 << 29)
 
+#define ACTOR_FLAG_PARTY (1 << 30) // Actor is a member of the player's party.
+
 #define ACTOR_FLAGS_CHECK_ALL(thisx, mask) (((thisx)->flags & (mask)) == (mask))
 
 #define COLORFILTER_GET_COLORINTENSITY(colorFilterParams) (((colorFilterParams) & 0x1F00) >> 5)
@@ -281,6 +283,7 @@ typedef struct Actor {
                 u16 physicaldefensemultiplier;
                 u16 magicdefensemultiplier;
                 struct StatusEffectNode* statusEffectList;
+                s16 maxHealth;
 
 #if DEBUG_FEATURES
     /* 0x13C */ char dbgPad[0x10];
@@ -849,6 +852,7 @@ void Flags_SetInfTable(s32 flag);
 u16 func_80037C30(struct PlayState* play, s16 arg1);
 s32 func_80037D98(struct PlayState* play, Actor* actor, s32 arg2, s32* arg3);
 s32 Actor_TrackPlayer(struct PlayState* play, Actor* actor, Vec3s* headRot, Vec3s* torsoRot, Vec3f focusPos);
+void TargetHealth_Draw(struct PlayState* play, Vec3f* pos, s16 health, s16 maxHealth);
 StatusEffectNode* StatusEffect_AddToActor(Actor* actor, StatusEffectId id, s32 duration, u8 intensity);
 int StatusEffect_RemoveFromActor(Actor* actor, StatusEffectId id);
 int StatusEffect_ActorHas(Actor* actor, StatusEffectId id);

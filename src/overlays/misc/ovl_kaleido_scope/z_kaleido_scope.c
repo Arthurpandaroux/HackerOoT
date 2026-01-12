@@ -3586,7 +3586,7 @@ void KaleidoScope_UpdateOpening(PlayState* play) {
         pauseCtx->pageIndex = sPageSwitchNextPageIndex[pauseCtx->nextPageMode];
 
         pauseCtx->mainState = PAUSE_MAIN_STATE_IDLE;
-        pauseCtx->state++; // PAUSE_STATE_MAIN
+        pauseCtx->state = PAUSE_STATE_SAVE_PROMPT;
 
         pauseCtx->alpha = 255;
         Interface_LoadActionLabelB(play, DO_ACTION_SAVE);
@@ -4404,7 +4404,7 @@ void KaleidoScope_Update(PlayState* play) {
                     R_PAUSE_BUTTON_RIGHT_X += R_PAUSE_BUTTON_RIGHT_MOVE_OFFSET_X / R_PAUSE_UI_ANIMS_DURATION;
 
                     if (pauseCtx->promptPitch >= -314.0f) {
-                        pauseCtx->state = PAUSE_STATE_MAIN;
+                        pauseCtx->state = PAUSE_STATE_SAVE_PROMPT;
                         pauseCtx->savePromptState = PAUSE_SAVE_PROMPT_STATE_APPEARING;
                         pauseCtx->itemPagePitch = pauseCtx->equipPagePitch = pauseCtx->mapPagePitch =
                             pauseCtx->questPagePitch = 0.0f;
