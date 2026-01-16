@@ -23,6 +23,7 @@
 #include "player.h"
 #include "collision_check.h"
 #include "save.h"
+#include "lifemeter.h"
 
 #include "assets/objects/object_tirkin/object_tirkin.h"
 #include "assets/objects/gameplay_keep/gameplay_keep.h"
@@ -140,11 +141,12 @@ void En_Tirkin_Init(Actor* thisx, PlayState* play) {
     SkelAnime_InitFlex(play, &this->skelanime, &Tirkin_skel, &Tirkin_idleTirkin_idle_001Anim, this->jointTable, this->morphTable, TIRKIN_SKEL_NUM_LIMBS);
     Actor_ProcessInitChain(&this->actor, sInitChain);
     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 10.0f);
+     CollisionCheck_InitInfo(&thisx->colChkInfo);
     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
-    this->actor.colChkInfo.health = 200;
+    this->actor.colChkInfo.health = 150;
     this->actor.speed = 2.0f;
      this->actor.world.pos.y += 20.0f;
-    this->attackCooldown = 160.0f;
+    this->attackCooldown = 10.0f;
     this->damagedTimer = 100;
     this->attackCooldownFire = 100.0f;
     play->party.members[1] = thisx;
@@ -418,7 +420,7 @@ void En_Tirkin_AttackEnemyMoveThink(En_Tirkin* this, PlayState* play) {
     Math_SmoothStepToS(&this->actor.world.rot.y, targetYaw, 5, 1000, 1);
     this->actor.shape.rot.y = this->actor.world.rot.y;
     if (this->attackCooldown == 0) {
-        En_Tirkin_HealSetup(this);
+        En_Tirkin_CastFiresetup(this);
     }   
     this->actor.speed = 0.4f;
     };
@@ -462,12 +464,19 @@ void En_Tirkin_Heal(En_Tirkin* this, PlayState* play) {
 
 void En_Tirkin_CastFire(En_Tirkin* this, PlayState* play) {
     SkelAnime_Update(&this->skelanime);
-    
+    Player* player = GET_PLAYER(play);
     if (SkelAnime_Update(&this->skelanime)) {  // Animation finished
         // Spawn flame actor
         
-        this->attackCooldown = 200.0f;  // Reset cooldown (adjust duration as needed)
-         En_Tirkin_InitFlame(&this->actor, play);
+        this->attackCooldown = 10.0f;  // Reset cooldown (adjust duration as needed)
+         Actor_DealUnavoidableDamage(
+            play,
+            &player->actor,               /* target */
+            &player->cylinder.base,       /* target collider */
+            8,                             /* damage */
+            AT_PHYSICAL,                  /* physical attack */
+            HIT_SPECIAL_EFFECT_NONE       /* no special effect */
+        );
         En_Tirkin_SetupMove(this);
     }
 }
@@ -524,7 +533,6 @@ void En_Tirkin_Update(Actor* thisx, PlayState* play) {
         this->attackCooldownFire--;
     }
 };
-
     EnTirkin_CheckDamage(this, play);
     this->actionFunc(this, play);
     Collider_UpdateCylinder(&this->actor, &this->collider);

@@ -39,11 +39,9 @@ void Helpers_LoadDefinedScene(GameState* gameState) {
 }
 
 void Helpers_LoadTitleScreen(GameState* gameState) {
-    gSaveContext.seqId = (u8)NA_BGM_DISABLED;
-    gSaveContext.natureAmbienceId = 0xFF;
-    gSaveContext.gameMode = GAMEMODE_TITLE_SCREEN;
+    gSaveContext.gameMode = GAMEMODE_FILE_SELECT;
     gameState->running = false;
-    SET_NEXT_GAMESTATE(gameState, TitleSetup_Init, TitleSetupState);
+    SET_NEXT_GAMESTATE(gameState, FileSelect_Init, FileSelectState);
 }
 
 void Helpers_LoadFileSelect(GameState* gameState) {

@@ -504,19 +504,23 @@ void Health_DrawMeterParty1(PlayState* play) {
 
     s16 health = member->colChkInfo.health;
     s16 maxHealth = member->maxHealth;
-
-    if (maxHealth <= 0 || health <= 0) {
-        return;
-    }
-
+     s32 texWidthFP = 16 << 5; // 16px texture, fixed-point
+    s32 t = play->gameplayFrames * 2;
+    s32 phase = t % (texWidthFP * 2);
+         s32 shineScroll = (phase < texWidthFP) ? phase : (texWidthFP * 2 - phase);
     f32 healthFrac = (f32)health / (f32)maxHealth;
     healthFrac = CLAMP(healthFrac, 0.0f, 1.0f);
 
-    // --- Screen position (top-left HUD style) ---
-    s16 x = 40;
-    s16 y = 40;
+    if (maxHealth == 0)
+        return;
+    if (health < 0)
+        health = 0;
 
-    s16 width  = 300;
+    // --- Screen position (top-left HUD style) ---
+    s16 x = 3;
+    s16 y = 90;
+
+    s16 width  = 50;
     s16 height = 8;
 
 #if IS_INV_EDITOR_ENABLED
@@ -528,10 +532,7 @@ void Health_DrawMeterParty1(PlayState* play) {
     OPEN_DISPS(gfxCtx, "../z_lifebar.c", 1);
     gDPPipeSync(OVERLAY_DISP++);
     Gfx_SetupDL_39Overlay(gfxCtx);
-
-    // -------- Background (empty health) --------
-    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0, 60, 70, interfaceCtx->healthAlpha);
-    gDPSetEnvColor(OVERLAY_DISP++, 0, 0, 0, 255);
+    gSPTexture(OVERLAY_DISP++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
 
     gDPLoadMultiBlock_4b(
         OVERLAY_DISP++, gMagicMeterFillTex, 0x0000, G_TX_RENDERTILE,
@@ -539,6 +540,19 @@ void Health_DrawMeterParty1(PlayState* play) {
         G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP,
         G_TX_NOMASK, G_TX_NOMASK,
         G_TX_NOLOD, G_TX_NOLOD
+    );
+
+    // =========================================================
+    // 1) BACKGROUND (empty health)
+    // =========================================================
+    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0, 60, 70, interfaceCtx->healthAlpha);
+    gDPSetRenderMode(OVERLAY_DISP++, G_RM_PASS, G_RM_AA_XLU_SURF2);
+
+    gDPSetCombineLERP(OVERLAY_DISP++,
+        TEXEL0, 0, PRIMITIVE, 0,
+        TEXEL0, 0, PRIMITIVE, 0,
+        TEXEL0, 0, PRIMITIVE, 0,
+        TEXEL0, 0, PRIMITIVE, 0
     );
 
     gSPTextureRectangle(
@@ -550,16 +564,73 @@ void Health_DrawMeterParty1(PlayState* play) {
         1 << 10, 1 << 10
     );
 
-    // -------- Filled health --------
+    // =========================================================
+    // 2) FILLED HEALTH BAR
+    // =========================================================
+    s16 filledW = (s16)(width * healthFrac);
+
     gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0, 255, 240, interfaceCtx->healthAlpha);
 
     gSPTextureRectangle(
         OVERLAY_DISP++,
         x << 2, y << 2,
-        (x + (s16)(width * healthFrac)) << 2,
-        (y + height) << 2,
+        (x + filledW) << 2, (y + height) << 2,
         G_TX_RENDERTILE,
         0, 0,
+        1 << 10, 1 << 10
+    );
+
+    // =========================================================
+    // 3) EDGE GLOW (top + bottom)
+    // =========================================================
+    gDPSetRenderMode(OVERLAY_DISP++, G_RM_PASS, G_RM_AA_XLU_SURF2);
+
+// Additive-style combine
+gDPSetCombineLERP(OVERLAY_DISP++,
+    TEXEL0, 0, PRIMITIVE, 0,
+    TEXEL0, 0, PRIMITIVE, 0,
+    TEXEL0, 0, PRIMITIVE, 0,
+    TEXEL0, 0, PRIMITIVE, 0
+);
+
+// Bright aqua glow
+gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0, 220, 255, 220);
+
+// Top edge (2px)
+gSPTextureRectangle(
+    OVERLAY_DISP++,
+    x << 2,
+    y << 2,
+    (x + filledW) << 2,
+    (y + 2) << 2,
+    G_TX_RENDERTILE,
+    0, 0,
+    1 << 10, 1 << 10
+);
+
+// Bottom edge (2px)
+gSPTextureRectangle(
+    OVERLAY_DISP++,
+    x << 2,
+    (y + height - 2) << 2,
+    (x + filledW) << 2,
+    (y + height) << 2,
+    G_TX_RENDERTILE,
+    0, 0,
+    1 << 10, 1 << 10
+);
+
+    // =========================================================
+    // 4) FULL-HEIGHT BOUNCING SHINE
+    // =========================================================
+    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 120, 255, 255, 70);
+
+    gSPTextureRectangle(
+        OVERLAY_DISP++,
+        x << 2, y << 2,
+        (x + filledW) << 2, (y + height) << 2,
+        G_TX_RENDERTILE,
+        shineScroll, 0,
         1 << 10, 1 << 10
     );
 

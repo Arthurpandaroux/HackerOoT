@@ -83,8 +83,7 @@ static void Art_DrawIcon(
     ArtAction* art,
     f32 centerX,
     f32 centerY,
-    f32 halfSize,
-    u32* texture
+    f32 halfSize
 ) {
     u8 tint;
 
@@ -147,8 +146,7 @@ void ArtManager_DrawUI(ArtManager* mgr, PlayState* play) {
             art,
             sArtIconPos[i].x,
             sArtIconPos[i].y,
-            halfSize,
-            0
+            halfSize
         );
     }
 

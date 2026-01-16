@@ -1000,9 +1000,8 @@ void Actor_Init(Actor* actor, PlayState* play) {
         Actor_SetObjectDependency(play, actor);
         actor->init(actor, play);
         actor->init = NULL;
-        if (actor->colChkInfo.health > 0 && (actor->category == ACTORCAT_ENEMY || ACTORCAT_BOSS))
+        if (actor->colChkInfo.health > 0)
             actor->maxHealth = actor->colChkInfo.health;
-        else actor->maxHealth = 0;
     }
 }
 
@@ -2517,6 +2516,133 @@ static void ApplyEffectTick(PlayState* play, Actor* actor, StatusEffectNode* se)
             break;
     }
     (void)play;
+}
+
+
+void CollisionCheck_ApplyDamageJntSph(PlayState* play, CollisionCheckContext* colChkCtx, Collider* col) {
+    ColliderJntSph* jntSph = (ColliderJntSph*)col;
+    s32 i;
+
+    if (jntSph->count > 0 && jntSph->elements != NULL) {
+        for (i = 0; i < jntSph->count; i++) {
+            CollisionCheck_ApplyDamage(play, colChkCtx, &jntSph->base, &jntSph->elements[i].base);
+        }
+    }
+}
+
+/**
+ * Apply ColliderCylinder AC damage effect
+ */
+void CollisionCheck_ApplyDamageCyl(PlayState* play, CollisionCheckContext* colChkCtx, Collider* col) {
+    ColliderCylinder* cyl = (ColliderCylinder*)col;
+
+    CollisionCheck_ApplyDamage(play, colChkCtx, &cyl->base, &cyl->elem);
+}
+
+/**
+ * Apply ColliderTris AC damage effect
+ */
+void CollisionCheck_ApplyDamageTris(PlayState* play, CollisionCheckContext* colChkCtx, Collider* col) {
+    ColliderTris* tris = (ColliderTris*)col;
+    s32 i;
+
+    for (i = 0; i < tris->count; i++) {
+        CollisionCheck_ApplyDamage(play, colChkCtx, col, &tris->elements[i].base);
+    }
+}
+
+/**
+ *  Apply ColliderQuad AC damage effect
+ */
+void CollisionCheck_ApplyDamageQuad(PlayState* play, CollisionCheckContext* colChkCtx, Collider* col) {
+    ColliderQuad* quad = (ColliderQuad*)col;
+
+    CollisionCheck_ApplyDamage(play, colChkCtx, &quad->base, &quad->elem);
+}
+
+static void CollisionCheck_ForceApplyDamage(
+    PlayState* play,
+    Collider* col
+) {
+    switch (col->shape) {
+        case COLSHAPE_JNTSPH:
+            CollisionCheck_ApplyDamageJntSph(play, &play->colChkCtx, col);
+            break;
+
+        case COLSHAPE_CYLINDER:
+            CollisionCheck_ApplyDamageCyl(play, &play->colChkCtx, col);
+            break;
+
+        case COLSHAPE_TRIS:
+            CollisionCheck_ApplyDamageTris(play, &play->colChkCtx, col);
+            break;
+
+        case COLSHAPE_QUAD:
+            CollisionCheck_ApplyDamageQuad(play, &play->colChkCtx, col);
+            break;
+    }
+}
+
+void Actor_DealUnavoidableDamage(
+    PlayState* play,
+    Actor* target,
+    Collider* targetCol,
+    s32 damage,
+    u8 atFlags,
+    HitSpecialEffect hitFx
+) {
+    ColliderElement atElem;
+
+    if (play == NULL || target == NULL || targetCol == NULL) {
+        return;
+    }
+
+    if (target->colChkInfo.health <= 0) {
+        return;
+    }
+
+    if (damage <= 0) {
+        damage = 1;
+    }
+
+    /* Clear player i-frames */
+    if (target->category == ACTORCAT_PLAYER) {
+        ((Player*)target)->invincibilityTimer = 0;
+    }
+
+    /* Fake AT element */
+    bzero(&atElem, sizeof(ColliderElement));
+    atElem.atElemFlags = atFlags;
+    atElem.atDmgInfo.damage = damage;
+    atElem.atDmgInfo.damageMagic = damage;
+    atElem.atDmgInfo.hitSpecialEffect = hitFx;
+
+    /* Mark AC hit */
+    targetCol->acFlags |= AC_HIT;
+
+    switch (targetCol->shape) {
+        case COLSHAPE_CYLINDER: {
+            ColliderCylinder* cyl = (ColliderCylinder*)targetCol;
+            cyl->elem.acElemFlags |= ACELEM_HIT;
+            cyl->elem.acHitElem = &atElem;
+            break;
+        }
+
+        case COLSHAPE_JNTSPH: {
+            ColliderJntSph* jnt = (ColliderJntSph*)targetCol;
+            for (s32 i = 0; i < jnt->count; i++) {
+                jnt->elements[i].base.acElemFlags |= ACELEM_HIT;
+                jnt->elements[i].base.acHitElem = &atElem;
+            }
+            break;
+        }
+
+        /* add TRIS / QUAD if needed */
+    }
+
+    /* Apply damage through collision system */
+    CollisionCheck_ApplyDamageCyl(play, &play->colChkCtx, targetCol);
+    Actor_ApplyDamage(target);
 }
 
 void StatusEffect_UpdateAll(PlayState* play) {

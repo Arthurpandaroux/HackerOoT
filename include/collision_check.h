@@ -586,6 +586,8 @@ void CollisionCheck_SpawnShieldParticlesMetal2(struct PlayState* play, Vec3f* v)
 void CollisionCheck_SpawnShieldParticlesWood(struct PlayState* play, Vec3f* v, Vec3f* actorPos);
 s32 CollisionCheck_CylSideVsLineSeg(f32 radius, f32 height, f32 offset, Vec3f* actorPos, Vec3f* itemPos,
                                     Vec3f* itemProjPos, Vec3f* out1, Vec3f* out2);
+void CollisionCheck_ApplyDamage(struct PlayState* play, CollisionCheckContext* colChkCtx, Collider* col,
+                                ColliderElement* elem);
 u8 CollisionCheck_GetSwordDamage(s32 dmgFlags);
 
 #endif

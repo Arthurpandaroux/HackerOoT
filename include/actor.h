@@ -858,5 +858,13 @@ int StatusEffect_RemoveFromActor(Actor* actor, StatusEffectId id);
 int StatusEffect_ActorHas(Actor* actor, StatusEffectId id);
 void StatusEffect_ClearActor(Actor* actor);
 void StatusEffect_UpdateAll(struct PlayState* play); /* call once per-frame (e.g. Play_Update) */
+void Actor_DealUnavoidableDamage(
+    struct PlayState* play,
+    Actor* target,
+    Collider* targetCol,
+    s32 damage,
+    u8 atFlags,
+    HitSpecialEffect hitFx
+);
 
-#endif
+#endif 
